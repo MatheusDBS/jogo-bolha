@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  background-color: #c28223; /* cor do deserto */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+canvas {
+  background: none; /* fundo transparente para mostrar o deserto desenhado no canvas */
+  border: 4px solid #006699;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
