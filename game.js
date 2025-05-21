@@ -24,6 +24,10 @@ explosionImg.src = './explosion.png';
 const cactusImg = new Image();
 cactusImg.src = 'Cactus.png';
 
+// Carrega a imagem do oásis
+const oasisImg = new Image();
+oasisImg.src = 'Oasis.png';
+
 const EXPLOSION_FRAMES = 10;
 const EXPLOSION_WIDTH = 68; // largura de cada frame (680px / 10)
 const EXPLOSION_HEIGHT = 68;
@@ -170,38 +174,9 @@ function drawCactus(obs) {
 function drawOasis(oasis) {
   ctx.save();
   ctx.translate(oasis.x, oasis.y);
-  ctx.transform(1, Math.sin(Date.now() / 400) / 6, 0, 1, 0, 0); // shearY animado
-  // Água
-  ctx.beginPath();
-  ctx.ellipse(0, 0, oasis.radius, oasis.radius * 0.5, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#4ecbe6';
-  ctx.globalAlpha = 0.7;
-  ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.95;
+  ctx.drawImage(oasisImg, -oasis.radius, -oasis.radius, oasis.radius * 2, oasis.radius * 2);
   ctx.restore();
-  // Palmeira (mantém push/pop)
-  ctx.save();
-  ctx.translate(oasis.x, oasis.y);
-  ctx.rotate(-0.2);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(0, -oasis.radius * 1.2);
-  ctx.lineWidth = 7;
-  ctx.strokeStyle = '#b97a56';
-  ctx.stroke();
-  ctx.restore();
-  for (let i = 0; i < 5; i++) {
-    ctx.save();
-    ctx.translate(oasis.x, oasis.y);
-    ctx.rotate(-0.7 + i * 0.35);
-    ctx.beginPath();
-    ctx.moveTo(0, -oasis.radius * 1.2);
-    ctx.quadraticCurveTo(18, -oasis.radius * 1.5, 0, -oasis.radius * 1.7);
-    ctx.strokeStyle = '#2e8b57';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.restore();
-  }
 }
 
 // Controles
@@ -502,3 +477,4 @@ function startNextPhase() {
 }
 
 updateGame();
+  
