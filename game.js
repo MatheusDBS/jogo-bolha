@@ -20,6 +20,9 @@ let miniBubbles = [];
 const explosionImg = new Image();
 explosionImg.src = './explosion.png';
 
+// Carrega o som de explosão
+const explosionSound = new Audio('Explosao.mp3');
+
 // Carrega a imagem do cacto
 const cactusImg = new Image();
 cactusImg.src = 'Cactus.png';
@@ -35,6 +38,10 @@ const EXPLOSION_HEIGHT = 68;
 let burstFrame = 0;
 let bursting = false;
 function animateBurstFullScreen(centerX, centerY, radius) {
+  if (burstFrame === 0) {
+    explosionSound.currentTime = 0;
+    explosionSound.play();
+  }
   ctx.save();
   ctx.globalAlpha = 0.95;
   // Calcula o retângulo para centralizar a explosão na posição da bolha
@@ -477,4 +484,3 @@ function startNextPhase() {
 }
 
 updateGame();
-  
