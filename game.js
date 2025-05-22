@@ -1,174 +1,220 @@
-const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+// Variáveis globais
+let bubbleImg, miniBubbleImg, cactusImg, oasisImg, explosionSound, heartImg;
+let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, nextPhase = false, finishLineX;
 const GRAVITY = 0.4;
-let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, burstFrame = 0, bursting = false;
-const bubbleImg = Object.assign(new Image(), {src: 'Bolha.png'});
-const miniBubbleImg = bubbleImg;
-const explosionImg = Object.assign(new Image(), {src: './explosion.png'});
-const explosionSound = new Audio('Explosao.mp3');
-const cactusImg = Object.assign(new Image(), {src: 'Cactus.png'});
-const oasisImg = Object.assign(new Image(), {src: 'Oasis.png'});
-const EXPLOSION_FRAMES = 10, EXPLOSION_WIDTH = 68, EXPLOSION_HEIGHT = 68;
+const { width, height } = { width: 800, height: 500 };
 let miniBubbles = [], obstacles = [], oasisList = [];
+
+// Objeto do jogador
 const player = {
   x: 150, y: 200, radius: 25, dy: 0, flapStrength: -6, invincible: false,
-  update() { this.y += this.dy; this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y)); },
-  draw() { drawPlayerBubble(); },
-  flap() { this.dy = this.flapStrength; }
+  update() {
+    this.y = Math.max(this.radius, Math.min(height - this.radius, this.y + this.dy));
+    this.dy += GRAVITY;
+  },
+  draw() {
+    push();
+    translate(this.x, this.y);
+    rotate(sin(millis() / 300) / 10);
+    scale(1 + sin(millis() / 500) * 0.03, 1 + cos(millis() / 500) * 0.03);
+    image(bubbleImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
+    pop();
+  },
+  flap: () => (player.dy = player.flapStrength)
 };
-function drawPlayerBubble() {
-  ctx.save();
-  ctx.translate(player.x, player.y);
-  ctx.rotate(Math.sin(Date.now() / 300) / 10);
-  ctx.scale(1 + Math.sin(Date.now() / 500) * 0.03, 1 + Math.cos(Date.now() / 500) * 0.03);
-  ctx.globalAlpha = 0.95;
-  ctx.drawImage(bubbleImg, -player.radius, -player.radius, player.radius * 2, player.radius * 2);
-  ctx.restore();
-}
-function spawnObstacle() {
-  obstacles.push({x: canvas.width + 50, y: Math.random() * (canvas.height - 60) + 30, radius: 20 + Math.random() * 10});
-}
-function spawnOasis() {
-  oasisList.push({x: canvas.width + 80, y: Math.random() * (canvas.height - 120) + 60, radius: 32 + Math.random() * 12});
-}
-function drawBackground() {
-  ctx.fillStyle = '#ffe5a1'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath(); ctx.arc(canvas.width - 80, 80, 50, 0, Math.PI * 2); ctx.fillStyle = '#fff7b2'; ctx.fill();
-  ctx.fillStyle = '#e2b96f'; ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-  ctx.beginPath(); ctx.moveTo(0, canvas.height - 80);
-  ctx.bezierCurveTo(canvas.width * 0.3, canvas.height - 120, canvas.width * 0.7, canvas.height - 40, canvas.width, canvas.height - 80);
-  ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.closePath();
-  ctx.fillStyle = '#f5d18c'; ctx.fill();
-}
-function drawCactus(obs) {
-  ctx.save(); ctx.translate(obs.x, obs.y);
-  ctx.drawImage(cactusImg, -obs.radius * 1.1, -obs.radius * 1.65, obs.radius * 2.2, obs.radius * 3.3);
-  ctx.restore();
-}
-function drawOasis(oasis) {
-  ctx.save(); ctx.translate(oasis.x, oasis.y); ctx.globalAlpha = 0.95;
-  ctx.drawImage(oasisImg, -oasis.radius, -oasis.radius, oasis.radius * 2, oasis.radius * 2);
-  ctx.restore();
-}
+
+// Controles
 let upPressed = false, downPressed = false;
-document.addEventListener("keydown", e => {
-  if (e.code === "ArrowUp") upPressed = true;
-  if (e.code === "ArrowDown") downPressed = true; // corrigido aqui
-  if (e.code === "Space") {
-    player.flap();
-    miniBubbles.push({x: player.x + player.radius, y: player.y, radius: 10, speed: 10});
-  }
-});
-document.addEventListener("keyup", e => {
-  if (e.code === "ArrowUp") upPressed = false;
-  if (e.code === "ArrowDown") downPressed = false;
-});
-function updatePlayerVertical() {
-  if (upPressed) player.y -= 5;
-  if (downPressed) player.y += 5;
-  player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+// Carregar assets
+preload = () => {
+  bubbleImg = loadImage('Bolha.png');
+  miniBubbleImg = loadImage('Bolha.png');
+  cactusImg = loadImage('Cactus.png');
+  oasisImg = loadImage('Oasis.png');
+  explosionSound = loadSound('Explosao.mp3');
+  heartImg = loadImage('heart.png'); // Novo: carrega imagem do coração
+};
+
+// Configuração inicial
+setup = () => createCanvas(width, height);
+
+// Desenho do fundo (deserto)
+let drawBackground = () => {
+  background('#ffe5a1');
+  fill('#fff7b2'); noStroke(); ellipse(width - 80, 80, 100, 100); // Sol
+  fill('#e2b96f'); rect(0, height - 80, width, 80); // Chão
+  fill('#f5d18c'); beginShape(); // Dunas
+  vertex(0, height - 80);
+  bezierVertex(width * 0.3, height - 120, width * 0.7, height - 40, width, height - 80);
+  vertex(width, height); vertex(0, height);
+  endShape(CLOSE);
+};
+
+// Desenhar cacto
+let drawCactus = ({ x, y, radius }) => {
+  push();
+  translate(x, y);
+  image(cactusImg, -radius * 1.1, -radius * 1.65, radius * 2.2, radius * 3.3);
+  pop();
+};
+
+// Desenhar oásis
+let drawOasis = ({ x, y, radius }) => {
+  push();
+  translate(x, y);
+  image(oasisImg, -radius, -radius, radius * 2, radius * 2);
+  pop();
+};
+
+// Tela de Game Over
+const showGameOverScreen = () => {
+  fill('rgba(0, 0, 0, 0.6)'); rect(0, 0, width, height);
+  fill('#fff'); textSize(40); textAlign(CENTER);
+  text("Game Over", width / 2, height / 2 - 10);
+  textSize(20); text(`Pontuação final: ${score}`, width / 2, height / 2 + 30);
+  text("Vidas restantes: 0", width / 2, height / 2 + 60);
+  noLoop();
+};
+
+// Gerar obstáculos e oásis
+const spawnObstacle = () => obstacles.push({ x: width + 50, y: random(30, height - 60), radius: 20 + random(10), color: "#ff5555" });
+const spawnOasis = () => oasisList.push({ x: width + 80, y: random(60, height - 120), radius: 32 + random(12) });
+
+// Atualizar movimento vertical do jogador
+const updatePlayerVertical = () => {
+  player.y += upPressed ? -5 : downPressed ? 5 : 0;
+  player.y = Math.max(player.radius, Math.min(height - player.radius, player.y));
   if (!upPressed && !downPressed) player.dy = 0;
-}
-function animateBurstFullScreen(cx, cy, r) {
-  if (!burstFrame) { explosionSound.currentTime = 0; explosionSound.play(); }
-  ctx.save(); ctx.globalAlpha = 0.95;
-  const w = canvas.width, h = canvas.height, ox = cx - w / 2, oy = cy - h / 2;
-  ctx.drawImage(explosionImg, burstFrame * EXPLOSION_WIDTH, 0, EXPLOSION_WIDTH, EXPLOSION_HEIGHT, ox, oy, w, h);
-  ctx.restore(); burstFrame++;
-  if (burstFrame < EXPLOSION_FRAMES) setTimeout(() => animateBurstFullScreen(cx, cy, r), 50);
-  else { burstFrame = 0; bursting = false; showGameOverScreen(); }
-}
-function showGameOverScreen() {
-  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#fff"; ctx.font = "40px Arial";
-  ctx.fillText("Game Over", canvas.width / 2 - 110, canvas.height / 2 - 10);
-  ctx.font = "20px Arial";
-  ctx.fillText("Pontuação final: " + score, canvas.width / 2 - 80, canvas.height / 2 + 30);
-  ctx.fillText("Vidas restantes: 0", canvas.width / 2 - 80, canvas.height / 2 + 60);
-}
-function updateGame() {
-  drawBackground(); ctx.clearRect(0, 0, canvas.width, canvas.height);
-  updatePlayerVertical(); player.update(); drawPlayerBubble();
-  for (let i = miniBubbles.length - 1; i >= 0; i--) {
-    let mb = miniBubbles[i]; mb.x += mb.speed - 3;
-    ctx.save(); ctx.globalAlpha = 0.85;
-    ctx.drawImage(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2); ctx.restore();
-    if (mb.x - mb.radius > canvas.width) miniBubbles.splice(i, 1);
-  }
-  for (let i = miniBubbles.length - 1; i >= 0; i--) {
-    let mb = miniBubbles[i];
-    for (let j = obstacles.length - 1; j >= 0; j--) {
-      let obs = obstacles[j], dx = mb.x - obs.x, dy = mb.y - obs.y, dist = Math.hypot(dx, dy);
-      if (dist < mb.radius + obs.radius) { miniBubbles.splice(i, 1); obstacles.splice(j, 1); score++; break; }
-    }
-  }
+};
+
+// Atualização principal
+draw = () => {
+  drawBackground();
+  updatePlayerVertical();
+  player.update();
+  player.draw();
+
+  // Mini bolhas
+  miniBubbles = miniBubbles.filter(mb => {
+    mb.x += mb.speed - 3;
+    image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
+    return mb.x - mb.radius <= width;
+  });
+
+  // Colisão mini bolhas e obstáculos
+  miniBubbles.forEach((mb, i) => {
+    obstacles = obstacles.filter((obs, j) => {
+      const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
+      if (dist < mb.radius + obs.radius) {
+        miniBubbles.splice(i, 1);
+        score++;
+        return false;
+      }
+      return true;
+    });
+  });
+
+  // Oásis
   if (++oasisTimer > 400) { spawnOasis(); oasisTimer = 0; }
-  for (let i = oasisList.length - 1; i >= 0; i--) {
-    let oasis = oasisList[i]; oasis.x -= 3; drawOasis(oasis);
-    let dx = player.x - oasis.x, dy = player.y - oasis.y, dist = Math.hypot(dx, dy);
-    if (dist < player.radius + oasis.radius * 0.7) { if (lives < 3) lives++; oasisList.pop(); continue; }
-    if (oasis.x + oasis.radius < 0) oasisList.splice(i, 1);
-  }
+  oasisList = oasisList.filter(oasis => {
+    oasis.x -= 3;
+    drawOasis(oasis);
+    const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
+    if (dist < player.radius + oasis.radius * 0.7) {
+      if (lives < 3) lives++;
+      return false;
+    }
+    return oasis.x + oasis.radius > 0;
+  });
+
+  // Obstáculos
   if (++spawnTimer > 80) { spawnObstacle(); spawnTimer = 0; }
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    let obs = obstacles[i]; obs.x -= 3;
-    let dx = player.x - obs.x, dy = player.y - obs.y, dist = Math.hypot(dx, dy);
-    if (player.invincible) { drawCactus(obs); if (obs.x + obs.radius < 0) { obstacles.splice(i, 1); score++; } continue; }
-    if (dist < player.radius + obs.radius) {
-      obstacles.splice(i, 1); lives--;
-      if (lives <= 0 && !bursting) { bursting = true; animateBurstFullScreen(player.x, player.y, player.radius); return; }
-      player.invincible = true; setTimeout(() => { player.invincible = false; }, 800); continue;
+  obstacles = obstacles.filter(obs => {
+    obs.x -= 3;
+    const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+    if (!player.invincible && dist < player.radius + obs.radius) {
+      lives--;
+      player.invincible = true;
+      setTimeout(() => player.invincible = false, 800);
+      if (lives <= 0) { showGameOverScreen(); return false; }
+      return false;
     }
-    drawCactus(obs); if (obs.x + obs.radius < 0) { obstacles.splice(i, 1); score++; }
-  }
-  ctx.fillStyle = "#004466"; ctx.font = "22px Arial"; ctx.fillText("Pontuação: " + score, 20, 30);
-  if (score >= 10 && !window.nextPhase) {
-    if (typeof window.finishLineX === 'undefined') window.finishLineX = canvas.width + 200;
-    window.finishLineX -= 3;
-    ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 8;
-    ctx.beginPath(); ctx.moveTo(window.finishLineX, 0); ctx.lineTo(window.finishLineX, canvas.height); ctx.stroke();
-    ctx.font = '28px Arial'; ctx.fillStyle = '#fff'; ctx.fillText('CHEGADA', window.finishLineX - 60, 60); ctx.restore();
-    if (player.x + player.radius > window.finishLineX) {
-      window.nextPhase = true;
-      setTimeout(() => { window.finishLineX = undefined; startNextPhase(); }, 1200);
+    drawCactus(obs);
+    if (obs.x + obs.radius < 0) score++;
+    return obs.x + obs.radius > 0;
+  });
+
+  // Linha de chegada
+  if (score >= 10 && !nextPhase) {
+    finishLineX ??= width + 200;
+    finishLineX -= 3;
+    stroke('#000'); strokeWeight(8); line(finishLineX, 0, finishLineX, height);
+    fill('#fff'); textSize(28); textAlign(LEFT); text('CHEGADA', finishLineX - 60, 60);
+    if (player.x + player.radius > finishLineX) {
+      nextPhase = true;
+      setTimeout(() => { finishLineX = undefined; startNextPhase(); }, 1200);
     }
-  } else window.finishLineX = undefined;
+  } else finishLineX = undefined;
+
+  // Pontuação
+  fill('#004466'); textSize(22); textAlign(LEFT); text(`Pontuação: ${score}`, 20, 30);
+
+  // Corações de vida com imagem
   for (let i = 0; i < 3; i++) {
     const x = 30 + i * 35, y = 60;
-    ctx.save(); ctx.beginPath(); ctx.moveTo(x, y);
-    ctx.bezierCurveTo(x - 10, y - 12, x - 22, y + 10, x, y + 18);
-    ctx.bezierCurveTo(x + 22, y + 10, x + 10, y - 12, x, y);
-    ctx.closePath(); ctx.fillStyle = i < lives ? '#e53935' : '#222'; ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.stroke(); ctx.restore();
+    if (i < lives) {
+      image(heartImg, x - 16, y - 16, 32, 32); // Desenha coração colorido
+    } else {
+      tint(50, 50, 50, 180); // Coração apagado
+      image(heartImg, x - 16, y - 16, 32, 32);
+      noTint();
+    }
   }
-  requestAnimationFrame(updateGame);
-}
-function startNextPhase() {
-  obstacles = []; oasisList = []; score = 0; lives = 3; player.x = 150; player.y = 200; window.nextPhase = false;
+};
+
+// Próxima fase (cozinha)
+const startNextPhase = () => {
+  [obstacles, oasisList, nextPhase] = [[], [], false];
+  [score, lives, player.x, player.y] = [0, 3, 150, 200];
   document.body.style.background = 'linear-gradient(135deg, #e0e0e0 60%, #b0bec5 100%)';
-  drawBackground = function() {
-    ctx.fillStyle = '#f5f5f5'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#d1cfcf';
-    for (let y = 0; y < canvas.height - 80; y += 40)
-      for (let x = 0; x < canvas.width; x += 40) ctx.strokeRect(x, y, 40, 40);
-    ctx.fillStyle = '#b0bec5'; ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-    ctx.fillStyle = '#a1887f'; ctx.fillRect(0, canvas.height - 120, 120, 40);
+  drawBackground = () => {
+    background('#f5f5f5');
+    stroke('#d1cfcf');
+    for (let y = 0; y < height - 80; y += 40)
+      for (let x = 0; x < width; x += 40) strokeRect(x, y, 40, 40);
+    fill('#b0bec5'); noStroke(); rect(0, height - 80, width, 80);
+    fill('#a1887f'); rect(0, height - 120, 120, 40);
   };
-  drawCactus = function(obs) {
-    ctx.save(); ctx.translate(obs.x, obs.y);
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, obs.radius * 1.5);
-    ctx.lineWidth = 10; ctx.strokeStyle = '#bdbdbd'; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5, obs.radius * 1.5); ctx.lineTo(5, obs.radius * 1.5);
-    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -obs.radius * 0.7);
-    ctx.lineWidth = 12; ctx.strokeStyle = '#6d4c41'; ctx.stroke(); ctx.restore();
+  drawCactus = ({ x, y, radius }) => {
+    push();
+    translate(x, y);
+    stroke('#bdbdbd'); strokeWeight(10); line(0, 0, 0, radius * 1.5);
+    stroke('#fff'); strokeWeight(2); line(-5, radius * 1.5, 5, radius * 1.5);
+    stroke('#6d4c41'); strokeWeight(12); line(0, 0, 0, -radius * 0.7);
+    pop();
   };
-  drawOasis = function(oasis) {
-    ctx.save(); ctx.translate(oasis.x, oasis.y);
-    ctx.beginPath(); ctx.ellipse(0, 0, oasis.radius, oasis.radius * 0.5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#e0e0e0'; ctx.globalAlpha = 1; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(0, 0, oasis.radius * 0.7, oasis.radius * 0.25, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#4ecbe6'; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1; ctx.restore();
+  drawOasis = ({ x, y, radius }) => {
+    push();
+    translate(x, y);
+    fill('#e0e0e0'); noStroke(); ellipse(0, 0, radius * 2, radius);
+    fill('#4ecbe6'); ellipse(0, 0, radius * 1.4, radius * 0.5);
+    pop();
   };
   oasisTimer = 0;
-}
-updateGame();
+};
+
+// Controles
+keyPressed = () => {
+  if (keyCode === UP_ARROW) upPressed = true;
+  if (keyCode === DOWN_ARROW) downPressed = true;
+  if (keyCode === 32) {
+    player.flap();
+    miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+  }
+};
+
+keyReleased = () => {
+  if (keyCode === UP_ARROW) upPressed = false;
+  if (keyCode === DOWN_ARROW) downPressed = false;
+};

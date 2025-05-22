@@ -7,7 +7,7 @@ body {
   height: 100vh;
 }
 
-canvas {
+canvas.p5Canvas {
   background: none; /* fundo transparente para mostrar o deserto desenhado no canvas */
   border: 4px solid #006699;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
