@@ -47,13 +47,14 @@ let upPressed = false, downPressed = false;
 
 // Carregar assets
 function preload() {
-  bubbleImg = loadImage('Bolha.png');
-  miniBubbleImg = loadImage('Bolha.png');
-  cactusImg = loadImage('Cactus.png');
-  oasisImg = loadImage('Oasis.png');
-  explosionSound = loadSound('Explosao.mp3');
-  heartImg = loadImage('heart.png');
-  explosionImg = loadImage('explosion.png');
+  bubbleImg = loadImage('./imgs/Bolha.png');
+  miniBubbleImg = loadImage('./imgs/Bolha.png');
+  cactusImg = loadImage('./imgs/baiacu.webp');
+  oasisImg = loadImage('./imgs/Oasis.png');
+  explosionSound = loadSound('./Explosao.mp3');
+  heartImg = loadImage('./imgs/heart.png');
+  explosionImg = loadImage('./imgs/explosion.png');
+  moonImg = loadImage('./imgs/lua.webp');
 }
 
 // Configuração inicial
@@ -63,8 +64,8 @@ function setup() {
 
 // Desenho do fundo (deserto)
 function drawBackground() {
-  background('#ffe5a1');
-  fill('#fff7b2'); noStroke(); ellipse(width - 80, 80, 100, 100); // Sol
+  background('#012030');
+  image(moonImg, width - 130, 30, 100, 100); // Lua
   fill('#e2b96f'); rect(0, height - 80, width, 80); // Chão
   fill('#f5d18c'); beginShape(); // Dunas
   vertex(0, height - 80);

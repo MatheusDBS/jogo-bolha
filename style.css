@@ -1,6 +1,9 @@
 body {
   margin: 0;
-  background-color: #c28223; /* cor do deserto */
+  /* background-color: #c28223;  */
+  background-image: url("./imgs/gifbolhas.gif");
+  background-repeat: no-repeat;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
