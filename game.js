@@ -20,8 +20,16 @@ let explosionX, explosionY;
 const player = {
   x: 150, y: 200, radius: 25, dy: 0, flapStrength: -6, invincible: false,
   update() {
-    this.y = Math.max(this.radius, Math.min(height - this.radius, this.y + this.dy));
-    this.dy += GRAVITY;
+    if (upPressed) {
+      this.y = Math.max(this.radius, this.y - 5);
+      this.dy = 0;
+    } else if (downPressed) {
+      this.y = Math.min(height - this.radius, this.y + 5);
+      this.dy = 0;
+    } else {
+      this.y = Math.max(this.radius, Math.min(height - this.radius, this.y + this.dy));
+      this.dy += GRAVITY;
+    }
   },
   draw() {
     push();
@@ -195,11 +203,22 @@ function draw() {
     player.update();
     player.draw();
 
-    // Mini bolhas
+    // Mini bolhas (tiros)
     miniBubbles = miniBubbles.filter(mb => {
-      mb.x += mb.speed - 3;
+      mb.x += mb.speed;
       image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
-      return mb.x - mb.radius <= width;
+      // Checa colisão com obstáculos
+      let hit = false;
+      obstacles = obstacles.filter(obs => {
+        const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
+        if (!hit && dist < mb.radius + obs.radius) {
+          score++;
+          hit = true;
+          return false; // Remove obstáculo
+        }
+        return true;
+      });
+      return mb.x - mb.radius <= width && !hit;
     });
 
     // Oásis
