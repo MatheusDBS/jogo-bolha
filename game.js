@@ -312,7 +312,7 @@ function draw() {
     fill('white');
     textSize(36);
     textAlign(CENTER);
-    text('Bem-vindo ao Bolha Baiacu!', width / 2, height / 2 - 60);
+    text('Bem-vindo ao BatBolha!', width / 2, height / 2 - 60);
     textSize(20);
     text('Clique em Iniciar Jogo para começar', width / 2, height / 2 - 20);
     noLoop();
