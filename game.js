@@ -1,5 +1,5 @@
 // Imagens e sons principais
-let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg;
+let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg, batmanImg;
 // Variáveis de estado do jogo
 let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, nextPhase = false, finishLineX;
 const GRAVITY = 0.4;
@@ -36,12 +36,17 @@ const player = {
     translate(this.x, this.y);
     rotate(sin(millis() / 300) / 10);
     scale(1 + sin(millis() / 500) * 0.03, 1 + cos(millis() / 500) * 0.03);
-    image(bubbleImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
+    if (batmanMode) {
+      image(batmanImg, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
+    } else {
+      image(bubbleImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
+    }
     pop();
   },
   flap: () => (player.dy = player.flapStrength)
 };
 let upPressed = false, downPressed = false;
+let batmanMode = false;
 
 // Pré-carrega imagens e sons
 function preload() {
@@ -61,6 +66,7 @@ function preload() {
   successSound = loadSound('./assets/audios/success.mp3');
   hitpopSound = loadSound('./assets/audios/hitpop.mp3');
   failSound = loadSound('./assets/audios/fail.mp3');
+  batmanImg = loadImage('./assets/imgs/Batman.png');
 }
 
 // Controle de início do jogo e vídeo de lore
@@ -531,6 +537,9 @@ function keyPressed() {
   if (keyCode === 32 && !gameOver) {
     player.flap();
     miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+  }
+  if (key === 'b' || key === 'B') {
+    batmanMode = !batmanMode;
   }
 }
 function keyReleased() {
