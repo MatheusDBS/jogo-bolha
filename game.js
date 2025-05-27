@@ -5,7 +5,9 @@ const GRAVITY = 0.4;
 const { width, height } = { width: 800, height: 500 };
 let miniBubbles = [], obstacles = [], oasisList = [];
 let particles = [];
+let boss = null; // Adicionado: variável global para o boss
 let gameOver = false; // Novo: controle de estado do jogo
+let bossBullets = []; // Balas disparadas pelo camarão
 
 // Variáveis da animação de explosão
 let explosionImg;
@@ -55,6 +57,9 @@ function preload() {
   heartImg = loadImage('./imgs/heart.png');
   explosionImg = loadImage('./imgs/explosion.png');
   moonImg = loadImage('./imgs/lua.webp');
+  bossImg = loadImage('./imgs/camarao.png');
+  popBaiacuSound = loadSound('./popbaiacu.mp3'); // Adicionado: som do baiacu
+  bossBulletImg = loadImage('./imgs/9mm.png'); // Adiciona imagem da bala do camarão
 }
 
 // Configuração inicial
@@ -176,7 +181,6 @@ function updatePlayerVertical() {
 function draw() {
   drawBackground();
   drawExplosion();
-  
   if (explosionActive) {
     return;
   }
@@ -203,98 +207,178 @@ function draw() {
     updatePlayerVertical();
     player.update();
     player.draw();
-
-    // Mini bolhas (tiros)
-    miniBubbles = miniBubbles.filter(mb => {
-      mb.x += mb.speed;
-      image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
-      // Checa colisão com obstáculos
-      let hit = false;
-      obstacles = obstacles.filter(obs => {
-        const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
-        if (!hit && dist < mb.radius + obs.radius) {
-          score++;
-          hit = true;
-          return false; // Remove obstáculo
-        }
-        return true;
+    // Mini bolhas (tiros) e obstáculos
+    if (score < 10) {
+      miniBubbles = miniBubbles.filter(mb => {
+        mb.x += mb.speed;
+        image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
+        let hit = false;
+        obstacles = obstacles.filter(obs => {
+          const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
+          if (!hit && dist < mb.radius + obs.radius) {
+            score++;
+            hit = true;
+            popBaiacuSound.play(); // Toca o som ao eliminar o baiacu
+            return false;
+          }
+          return true;
+        });
+        return mb.x - mb.radius <= width && !hit;
       });
-      return mb.x - mb.radius <= width && !hit;
-    });
-
-    // Oásis
-    if (++oasisTimer > 400) { 
-      spawnOasis(); 
-      oasisTimer = 0; 
-    }
-    
-    oasisList = oasisList.filter(oasis => {
-      oasis.x -= 3;
-      drawOasis(oasis);
-      const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
-      if (dist < player.radius + oasis.radius * 0.7) {
-        if (lives < 3) lives++;
-        return false;
+      // Oásis
+      if (++oasisTimer > 400) { 
+        spawnOasis(); 
+        oasisTimer = 0; 
       }
-      return oasis.x + oasis.radius > 0;
-    });
+      
+      oasisList = oasisList.filter(oasis => {
+        oasis.x -= 3;
+        drawOasis(oasis);
+        const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
+        if (dist < player.radius + oasis.radius * 0.7) {
+          if (lives < 3) lives++;
+          return false;
+        }
+        return oasis.x + oasis.radius > 0;
+      });
 
-    // Obstáculos
-    if (++spawnTimer > 80) { 
-      spawnObstacle(); 
-      spawnTimer = 0; 
-    }
-    
-    obstacles = obstacles.filter(obs => {
-      obs.x -= 3;
-      const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
-      if (!player.invincible && dist < player.radius + obs.radius) {
-        lives--;
-        player.invincible = true;
-        setTimeout(() => player.invincible = false, 800);
-        if (lives <= 0) {
-          explosionActive = true;
-          explosionX = player.x;
-          explosionY = player.y;
-          explosionFrame = 0;
-          explosionSound.play();
-          
-          for (let i = 0; i < 20; i++) {
-            particles.push({
-              x: player.x,
-              y: player.y,
-              dx: random(-5, 5),
-              dy: random(-5, 5),
-              radius: random(2, 5),
-              alpha: 255
-            });
+      // Obstáculos
+      if (++spawnTimer > 80) { 
+        spawnObstacle(); 
+        spawnTimer = 0; 
+      }
+      
+      obstacles = obstacles.filter(obs => {
+        obs.x -= 3;
+        const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+        if (!player.invincible && dist < player.radius + obs.radius) {
+          lives--;
+          player.invincible = true;
+          setTimeout(() => player.invincible = false, 800);
+          if (lives <= 0) {
+            explosionActive = true;
+            explosionX = player.x;
+            explosionY = player.y;
+            explosionFrame = 0;
+            explosionSound.play();
+            for (let i = 0; i < 20; i++) {
+              particles.push({
+                x: player.x,
+                y: player.y,
+                dx: random(-5, 5),
+                dy: random(-5, 5),
+                radius: random(2, 5),
+                alpha: 255
+              });
+            }
+            return false;
           }
           return false;
         }
-        return false;
-      }
-      drawCactus(obs);
-      if (obs.x + obs.radius < 0) score++;
-      return obs.x + obs.radius > 0;
-    });
-
-    // Linha de chegada
-    if (score >= 10 && !nextPhase) {
-      finishLineX ??= width + 200;
-      finishLineX -= 3;
-      stroke('#000'); 
-      strokeWeight(8); 
-      line(finishLineX, 0, finishLineX, height);
-      fill('#fff'); 
-      textSize(28); 
-      textAlign(LEFT); 
-      text('CHEGADA', finishLineX - 60, 60);
-      if (player.x + player.radius > finishLineX) {
-        nextPhase = true;
-        setTimeout(() => { finishLineX = undefined; showVictoryScreen(); }, 1200);
-      }
+        drawCactus(obs);
+        if (obs.x + obs.radius < 0) score++;
+        return obs.x + obs.radius > 0;
+      });
     } else {
-      finishLineX = undefined;
+      // Boss Camarão
+      if (!boss) {
+        boss = {
+          x: width - 200,
+          y: height / 2,
+          radius: 60,
+          hp: 50,
+          speed: 2,
+          direction: 1,
+          shootTimer: 0
+        };
+      }
+      // Movimento do boss
+      boss.y += boss.direction * 2;
+      if (boss.y < boss.radius || boss.y > height - boss.radius) boss.direction *= -1;
+      image(bossImg, boss.x - boss.radius, boss.y - boss.radius, boss.radius * 2, boss.radius * 2);
+      // Barra de vida
+      fill('red');
+      rect(boss.x - 50, boss.y - boss.radius - 20, 100, 10);
+      fill('lime');
+      rect(boss.x - 50, boss.y - boss.radius - 20, 100 * (boss.hp / 50), 10);
+      noStroke();
+      // Disparo do camarão
+      boss.shootTimer = (boss.shootTimer || 0) + 1;
+      if (boss.shootTimer > 60) { // A cada 1 segundo
+        bossBullets.push({
+          x: boss.x - boss.radius,
+          y: boss.y,
+          radius: 12,
+          speed: 7
+        });
+        boss.shootTimer = 0;
+      }
+      // Atualiza e desenha as balas do camarão
+      bossBullets = bossBullets.filter(bullet => {
+        bullet.x -= bullet.speed;
+        image(bossBulletImg, bullet.x - bullet.radius, bullet.y - bullet.radius, bullet.radius * 2, bullet.radius * 2);
+        // Colisão com o jogador
+        const dist = Math.hypot(player.x - bullet.x, player.y - bullet.y);
+        if (!player.invincible && dist < player.radius + bullet.radius) {
+          lives--;
+          player.invincible = true;
+          setTimeout(() => player.invincible = false, 800);
+          if (lives <= 0) {
+            explosionActive = true;
+            explosionX = player.x;
+            explosionY = player.y;
+            explosionFrame = 0;
+            explosionSound.play();
+            for (let i = 0; i < 20; i++) {
+              particles.push({
+                x: player.x,
+                y: player.y,
+                dx: random(-5, 5),
+                dy: random(-5, 5),
+                radius: random(2, 5),
+                alpha: 255
+              });
+            }
+            return false;
+          }
+          return false;
+        }
+        return bullet.x + bullet.radius > 0;
+      });
+      // Mini bolhas só colidem com o boss
+      miniBubbles = miniBubbles.filter(mb => {
+        mb.x += mb.speed;
+        image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
+        let hitBoss = false;
+        if (boss && Math.hypot(mb.x - boss.x, mb.y - boss.y) < boss.radius) {
+          boss.hp--;
+          hitBoss = true;
+        }
+        return mb.x - mb.radius <= width && !hitBoss;
+      });
+      // Oásis continuam funcionando normalmente
+      if (++oasisTimer > 400) { 
+        spawnOasis(); 
+        oasisTimer = 0; 
+      }
+      oasisList = oasisList.filter(oasis => {
+        oasis.x -= 3;
+        drawOasis(oasis);
+        const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
+        if (dist < player.radius + oasis.radius * 0.7) {
+          if (lives < 3) lives++;
+          return false;
+        }
+        return oasis.x + oasis.radius > 0;
+      });
+      // Fim do jogo só quando o boss for derrotado
+      if (boss.hp <= 0) {
+        fill('yellow');
+        textSize(40);
+        textAlign(CENTER);
+        text('Você derrotou o Boss!', width / 2, height / 2);
+        noLoop();
+      }
     }
   } else {
     // Mostra apenas a tela de game over
