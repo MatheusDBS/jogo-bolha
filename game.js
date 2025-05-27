@@ -51,7 +51,7 @@ let upPressed = false, downPressed = false;
 function preload() {
   bubbleImg = loadImage('./imgs/Bolha.png');
   miniBubbleImg = loadImage('./imgs/Bolha.png');
-  cactusImg = loadImage('./imgs/baiacu.webp');
+  cactusImg = loadImage('./imgs/puffer-fish.gif');
   oasisImg = loadImage('./imgs/Oasis.png');
   explosionSound = loadSound('./Explosao.mp3');
   heartImg = loadImage('./imgs/heart.png');
@@ -60,6 +60,7 @@ function preload() {
   bossImg = loadImage('./imgs/camarao.png');
   popBaiacuSound = loadSound('./popbaiacu.mp3'); // Adicionado: som do baiacu
   bossBulletImg = loadImage('./imgs/9mm.png'); // Adiciona imagem da bala do camarão
+  glock19Sound = loadSound('./glock19.mp3'); // Adiciona som do tiro do camarão
 }
 
 // Configuração inicial
@@ -83,7 +84,10 @@ function drawBackground() {
 function drawCactus({ x, y, radius }) {
   push();
   translate(x, y);
-  image(cactusImg, -radius * 1.1, -radius * 1.65, radius * 2.2, radius * 3.3);
+  // Oscilação de tamanho mais fluida usando seno com período maior e menor intensidade
+  const scaleOsc = 1; // Mantém a oscilação
+  const r = radius * scaleOsc * 1.7; // Aumenta o tamanho do baiacu (1.7x maior)
+  image(cactusImg, -r * 1.1, -r * 1.65, r * 2.2, r * 3.3);
   pop();
 }
 
@@ -308,9 +312,10 @@ function draw() {
         bossBullets.push({
           x: boss.x - boss.radius,
           y: boss.y,
-          radius: 12,
+          radius: 24,
           speed: 7
         });
+        glock19Sound.play(); // Toca o som do tiro
         boss.shootTimer = 0;
       }
       // Atualiza e desenha as balas do camarão
