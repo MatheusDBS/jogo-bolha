@@ -1,5 +1,5 @@
 // Variáveis globais
-let bubbleImg, miniBubbleImg, cactusImg, oasisImg, explosionSound, heartImg;
+let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg;
 let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, nextPhase = false, finishLineX;
 const GRAVITY = 0.4;
 const { width, height } = { width: 800, height: 500 };
@@ -49,23 +49,92 @@ let upPressed = false, downPressed = false;
 
 // Carregar assets
 function preload() {
-  bubbleImg = loadImage('./imgs/Bolha.png');
-  miniBubbleImg = loadImage('./imgs/Bolha.png');
-  cactusImg = loadImage('./imgs/puffer-fish.gif');
-  oasisImg = loadImage('./imgs/Oasis.png');
-  explosionSound = loadSound('./Explosao.mp3');
-  heartImg = loadImage('./imgs/heart.png');
-  explosionImg = loadImage('./imgs/explosion.png');
-  moonImg = loadImage('./imgs/lua.webp');
-  bossImg = loadImage('./imgs/camarao.png');
-  popBaiacuSound = loadSound('./popbaiacu.mp3'); // Adicionado: som do baiacu
-  bossBulletImg = loadImage('./imgs/9mm.png'); // Adiciona imagem da bala do camarão
-  glock19Sound = loadSound('./glock19.mp3'); // Adiciona som do tiro do camarão
+  bubbleImg = loadImage('./assets/imgs/Bolha.png');
+  miniBubbleImg = loadImage('./assets/imgs/Bolha.png');
+  baiacuImg = loadImage('./assets/imgs/puffer-fish.gif');
+  oasisImg = loadImage('./assets/imgs/Oasis.png');
+  explosionSound = loadSound('./assets/audios/Explosao.mp3');
+  heartImg = loadImage('./assets/imgs/heart.png');
+  explosionImg = loadImage('./assets/imgs/explosion.png');
+  moonImg = loadImage('./assets/imgs/lua.webp');
+  bossImg = loadImage('./assets/imgs/camarao.png');
+  popBaiacuSound = loadSound('./assets/audios/popbaiacu.mp3'); // Adicionado: som do baiacu
+  bossBulletImg = loadImage('./assets/imgs/9mm.png'); // Adiciona imagem da bala do camarão
+  glock19Sound = loadSound('./assets/audios/glock19.mp3'); // Adiciona som do tiro do camarão
 }
+
+let gameStarted = false;
 
 // Configuração inicial
 function setup() {
   createCanvas(width, height);
+  createStartButton();
+  createRestartButton();
+  noLoop();
+}
+
+function createStartButton() {
+  const btn = createButton('Iniciar Jogo');
+  btn.size(200, 60);
+  btn.style('font-size', '26px');
+  btn.style('background', 'linear-gradient(90deg, #00c3ff 0%, #ffff1c 100%)');
+  btn.style('color', '#222');
+  btn.style('border', 'none');
+  btn.style('border-radius', '30px');
+  btn.style('box-shadow', '0 4px 16px rgba(0,0,0,0.2)');
+  btn.style('font-weight', 'bold');
+  btn.style('cursor', 'pointer');
+  // Centraliza o botão abaixo do texto
+  btn.position((windowWidth - 200) / 2, (windowHeight - 60) / 2 + 60);
+  btn.mousePressed(() => {
+    gameStarted = true;
+    btn.hide();
+    loop();
+  });
+  window.startBtn = btn;
+}
+
+function createRestartButton() {
+  const btn = createButton('Reiniciar');
+  btn.position((windowWidth - 200) / 2, (windowHeight + 40) / 2);
+  btn.size(200, 60);
+  btn.style('font-size', '26px');
+  btn.style('background', 'linear-gradient(90deg, #ff512f 0%, #f09819 100%)');
+  btn.style('color', '#fff');
+  btn.style('border', 'none');
+  btn.style('border-radius', '30px');
+  btn.style('box-shadow', '0 4px 16px rgba(0,0,0,0.2)');
+  btn.style('font-weight', 'bold');
+  btn.style('cursor', 'pointer');
+  btn.hide();
+  btn.mousePressed(() => {
+    resetGame();
+    btn.hide();
+    if (window.startBtn) window.startBtn.hide();
+    loop();
+  });
+  window.restartBtn = btn;
+}
+
+function resetGame() {
+  score = 0;
+  lives = 3;
+  spawnTimer = 0;
+  oasisTimer = 0;
+  nextPhase = false;
+  miniBubbles = [];
+  obstacles = [];
+  oasisList = [];
+  particles = [];
+  boss = null;
+  bossBullets = [];
+  explosionActive = false;
+  explosionFrame = 0;
+  gameOver = false;
+  player.x = 150;
+  player.y = 200;
+  player.dy = 0;
+  player.invincible = false;
 }
 
 // Desenho do fundo (deserto)
@@ -80,14 +149,14 @@ function drawBackground() {
   endShape(CLOSE);
 }
 
-// Desenhar cacto
-function drawCactus({ x, y, radius }) {
+// Desenhar baiacu
+function drawbaiacu({ x, y, radius }) {
   push();
   translate(x, y);
   // Oscilação de tamanho mais fluida usando seno com período maior e menor intensidade
   const scaleOsc = 1; // Mantém a oscilação
   const r = radius * scaleOsc * 1.7; // Aumenta o tamanho do baiacu (1.7x maior)
-  image(cactusImg, -r * 1.1, -r * 1.65, r * 2.2, r * 3.3);
+  image(baiacuImg, -r * 1.1, -r * 1.65, r * 2.2, r * 3.3);
   pop();
 }
 
@@ -142,6 +211,11 @@ function showGameOverScreen() {
   textSize(20); 
   text(`Pontuação final: ${score}`, width / 2, height / 2);
   text("Vidas restantes: 0", width / 2, height / 2 + 30);
+  if (window.restartBtn) {
+    // Centraliza o botão abaixo do texto de Game Over
+    window.restartBtn.position((windowWidth - 200) / 2, (windowHeight) / 2 + 60);
+    window.restartBtn.show();
+  }
   noLoop();
 }
 
@@ -183,6 +257,17 @@ function updatePlayerVertical() {
 
 // Atualização principal
 function draw() {
+  if (!gameStarted) {
+    background('#012030');
+    fill('white');
+    textSize(36);
+    textAlign(CENTER);
+    text('Bem-vindo ao Jogo da Bolha!', width / 2, height / 2 - 60);
+    textSize(20);
+    text('Clique em Iniciar Jogo para começar', width / 2, height / 2 - 20);
+    noLoop();
+    return;
+  }
   drawBackground();
   drawExplosion();
   if (explosionActive) {
@@ -190,7 +275,7 @@ function draw() {
   }
   
   // Elementos que sempre aparecem
-  fill('#004466'); 
+  fill('white'); 
   textSize(22); 
   textAlign(LEFT); 
   text(`Pontuação: ${score}`, 20, 30);
@@ -279,7 +364,7 @@ function draw() {
           }
           return false;
         }
-        drawCactus(obs);
+        drawbaiacu(obs);
         if (obs.x + obs.radius < 0) score++;
         return obs.x + obs.radius > 0;
       });
