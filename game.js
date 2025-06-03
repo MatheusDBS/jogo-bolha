@@ -1,5 +1,6 @@
 // Imagens e sons principais
-let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg, batmanImg;
+let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg, batmanImg, platformImg;
+let moonImg, bossImg, popBaiacuSound, bossBulletImg, glock19Sound, batmanSound, successSound, hitpopSound, failSound;
 // Variáveis de estado do jogo
 let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, nextPhase = false, finishLineX;
 const GRAVITY = 0.4;
@@ -17,19 +18,60 @@ let explosionActive = false;
 let explosionFrame = 0;
 let explosionX, explosionY;
 // Objeto do jogador
+const GROUND_Y = height - 80; // altura do chão
+const PLAYER_SPEED = 5;
+const JUMP_STRENGTH = -12;
 const player = {
-  x: 150, y: 200, radius: 25, dy: 0, flapStrength: -6, invincible: false,
+  x: 150, y: GROUND_Y - 25, radius: 25, dy: 0, dx: 0, onGround: true, invincible: false,
   update() {
-    if (upPressed) {
-      this.y = Math.max(this.radius, this.y - 5);
-      this.dy = 0;
-    } else if (downPressed) {
-      this.y = Math.min(height - this.radius, this.y + 5);
-      this.dy = 0;
+    // Movimento horizontal
+    if (leftPressed) {
+      this.dx = -PLAYER_SPEED;
+    } else if (rightPressed) {
+      this.dx = PLAYER_SPEED;
     } else {
-      this.y = Math.max(this.radius, Math.min(height - this.radius, this.y + this.dy));
-      this.dy += GRAVITY;
+      this.dx = 0;
     }
+    this.x += this.dx;
+    // Gravidade e pulo
+    this.dy += GRAVITY;
+    this.y += this.dy;
+    // Colisão com plataformas (Cuphead style)
+    let onAnyPlatform = false;
+    for (let plat of platforms) {
+      // Verifica se está dentro dos limites horizontais da plataforma
+      if (
+        this.x + this.radius > plat.x &&
+        this.x - this.radius < plat.x + plat.w
+      ) {
+        // Se está caindo e logo acima da plataforma
+        if (
+          this.dy >= 0 &&
+          this.y + this.radius <= plat.y + 8 &&
+          this.y + this.radius + this.dy >= plat.y &&
+          !downPressed
+        ) {
+          this.y = plat.y - this.radius;
+          this.dy = 0;
+          this.onGround = true;
+          onAnyPlatform = true;
+        }
+        // Se está subindo, permite atravessar
+      }
+    }
+    // Colisão com o chão
+    if (this.y + this.radius > GROUND_Y) {
+      this.y = GROUND_Y - this.radius;
+      this.dy = 0;
+      this.onGround = true;
+      onAnyPlatform = true;
+    }
+    if (!onAnyPlatform) {
+      this.onGround = false;
+    }
+    // Limites laterais e verticais (barreira invisível)
+    this.x = constrain(this.x, this.radius, width - this.radius);
+    this.y = constrain(this.y, this.radius, height - this.radius);
   },
   draw() {
     push();
@@ -43,10 +85,30 @@ const player = {
     }
     pop();
   },
-  flap: () => (player.dy = player.flapStrength)
+  jump() {
+    if (this.onGround) {
+      this.dy = JUMP_STRENGTH;
+      this.onGround = false;
+    }
+  }
 };
-let upPressed = false, downPressed = false;
+let leftPressed = false, rightPressed = false;
 let batmanMode = false;
+let downPressed = false;
+let platforms = [
+  // 3 plataformas embaixo (mais pra cima)
+  { x: 100, y: 340, w: 160, h: 24 },
+  { x: 320, y: 340, w: 160, h: 24 },
+  { x: 540, y: 340, w: 160, h: 24 },
+  // 2 plataformas no meio
+  { x: 210, y: 220, w: 160, h: 24 },
+  { x: 430, y: 220, w: 160, h: 24 },
+  // 3 plataformas em cima
+  { x: 100, y: 100, w: 160, h: 24 },
+  { x: 320, y: 100, w: 160, h: 24 },
+  { x: 540, y: 100, w: 160, h: 24 }
+];
+let bombaGif;
 
 // Pré-carrega imagens e sons
 function preload() {
@@ -67,6 +129,8 @@ function preload() {
   hitpopSound = loadSound('./assets/audios/hitpop.mp3');
   failSound = loadSound('./assets/audios/fail.mp3');
   batmanImg = loadImage('./assets/imgs/Batman.png');
+  platformImg = loadImage('./assets/imgs/Plataforma.png');
+  bombaGif = loadImage('./assets/imgs/Bomba.gif');
 }
 
 // Controle de início do jogo e vídeo de lore
@@ -189,7 +253,7 @@ function resetGame() {
   explosionFrame = 0;
   gameOver = false;
   player.x = 150;
-  player.y = 200;
+  player.y = GROUND_Y - 25;
   player.dy = 0;
   player.invincible = false;
 }
@@ -198,21 +262,23 @@ function resetGame() {
 function drawBackground() {
   background('#012030');
   image(moonImg, width - 130, 30, 100, 100);
-  fill('#e2b96f'); rect(0, height - 80, width, 80);
+  fill('#e2b96f'); rect(0, height - 80, width, 80); // chão
   fill('#f5d18c'); beginShape();
   vertex(0, height - 80);
   bezierVertex(width * 0.3, height - 120, width * 0.7, height - 40, width, height - 80);
   vertex(width, height); vertex(0, height);
   endShape(CLOSE);
+  // Desenha plataformas
+  for (let plat of platforms) {
+    image(platformImg, plat.x, plat.y, plat.w, plat.h);
+  }
 }
 
 // Desenha baiacu (obstáculo)
 function drawbaiacu({ x, y, radius }) {
   push();
   translate(x, y);
-  const scaleOsc = 1;
-  const r = radius * scaleOsc * 1.7;
-  image(baiacuImg, -r * 1.1, -r * 1.65, r * 2.2, r * 3.3);
+  image(baiacuImg, -radius * 1.1 * 1.7, -radius * 1.65 * 1.7, radius * 2.2 * 1.7, radius * 3.3 * 1.7);
   pop();
 }
 
@@ -302,15 +368,6 @@ function spawnOasis() {
   }
 }
 
-// Atualiza posição vertical do jogador
-function updatePlayerVertical() {
-  if (!gameOver) {
-    player.y += upPressed ? -5 : downPressed ? 5 : 0;
-    player.y = Math.max(player.radius, Math.min(height - player.radius, player.y));
-    if (!upPressed && !downPressed) player.dy = 0;
-  }
-}
-
 // Loop principal do jogo
 function draw() {
   if (!gameStarted) {
@@ -332,7 +389,11 @@ function draw() {
   fill('white'); 
   textSize(22); 
   textAlign(LEFT); 
-  text(`Pontuação: ${score}`, 20, 30);
+  if (score < 10) {
+    text(`Elimine os Baiacus: ${score}/10`, 20, 30);
+  } else {
+    text('Derrote o Camarão Pistola', 20, 30);
+  }
   for (let i = 0; i < 3; i++) {
     const x = 30 + i * 35, y = 60;
     if (i < lives) {
@@ -344,7 +405,6 @@ function draw() {
     }
   }
   if (!gameOver) {
-    updatePlayerVertical();
     player.update();
     player.draw();
     // Fase 1: obstáculos e oásis
@@ -427,28 +487,156 @@ function draw() {
           direction: 1,
           shootTimer: 0
         };
+        bossAttackMode = 'normal';
+        bossAttackTimer = 0;
+        bossBurstCount = 0;
+        bossBurstShots = 0;
+        bossChargeTimer = 0;
+        bossCharging = false;
+        bossSpecialMode = false;
+        bossSpecialCharge = 0;
+        bossSpecialActive = false;
+        bossBomb = null;
       }
       boss.y += boss.direction * 2;
       if (boss.y < boss.radius || boss.y > height - boss.radius) boss.direction *= -1;
       image(bossImg, boss.x - boss.radius, boss.y - boss.radius, boss.radius * 2, boss.radius * 2);
+      // Barra de vida
       fill('red');
       rect(boss.x - 50, boss.y - boss.radius - 20, 100, 10);
       fill('lime');
       rect(boss.x - 50, boss.y - boss.radius - 20, 100 * (boss.hp / 50), 10);
       noStroke();
-      boss.shootTimer = (boss.shootTimer || 0) + 1;
-      if (boss.shootTimer > 60) {
-        bossBullets.push({
-          x: boss.x - boss.radius,
-          y: boss.y,
-          radius: 24,
-          speed: 7
-        });
-        glock19Sound.play();
-        boss.shootTimer = 0;
+      // --- ATAQUES DO BOSS ---
+      bossAttackTimer++;
+      // Ataque especial: 50% de chance a cada 2 segundos (120 frames)
+      if (!bossSpecialMode && !bossSpecialActive && bossAttackTimer % 60 === 0 && random() < 0.5) {
+        bossSpecialMode = true;
+        bossSpecialCharge = 0;
+        bossSpecialActive = false;
+        bossAttackMode = 'special';
+        // Salva a posição do jogador no início do carregamento
+        bossBombTarget = { x: player.x, y: player.y };
       }
+      if (bossAttackMode === 'special') {
+        bossSpecialCharge++;
+        // Efeito visual de carregamento
+        push();
+        noFill();
+        stroke(255, 0, 0);
+        strokeWeight(4);
+        ellipse(boss.x, boss.y, boss.radius * 2 + 20 + sin(frameCount * 0.2) * 10);
+        pop();
+        // Após 5 segundos (300 frames), lança a bomba
+        if (bossSpecialCharge >= 300 && !bossSpecialActive) {
+          // Calcula direção da bomba baseada na posição do jogador no início do carregamento
+          let dist = Math.hypot(bossBombTarget.x - boss.x, bossBombTarget.y - boss.y);
+          let steps = Math.max(40, Math.min(80, Math.floor(dist / 8)));
+          bossBomb = {
+            x: boss.x - boss.radius,
+            y: boss.y,
+            radius: 32,
+            dx: (bossBombTarget.x - boss.x) / steps,
+            dy: (bossBombTarget.y - boss.y) / steps,
+            active: true
+          };
+          bossSpecialActive = true;
+        }
+        // Move e desenha a bomba
+        if (bossBomb && bossBomb.active) {
+          bossBomb.x += bossBomb.dx;
+          bossBomb.y += bossBomb.dy;
+          image(bombaGif, bossBomb.x - bossBomb.radius, bossBomb.y - bossBomb.radius, bossBomb.radius * 2, bossBomb.radius * 2);
+          // Colisão bomba x jogador
+          const distBomb = Math.hypot(player.x - bossBomb.x, player.y - bossBomb.y);
+          if (distBomb < player.radius + bossBomb.radius) {
+            lives = 0;
+            explosionActive = true;
+            explosionX = player.x;
+            explosionY = player.y;
+            explosionFrame = 0;
+            explosionSound.play();
+            for (let i = 0; i < 20; i++) {
+              particles.push({
+                x: player.x,
+                y: player.y,
+                dx: random(-5, 5),
+                dy: random(-5, 5),
+                radius: random(2, 5),
+                alpha: 255
+              });
+            }
+            bossBomb.active = false;
+            bossSpecialMode = false;
+            bossAttackMode = 'normal';
+            bossAttackTimer = 0;
+          }
+          // Remove bomba se sair da tela
+          if (bossBomb.x < -bossBomb.radius || bossBomb.x > width + bossBomb.radius || bossBomb.y < -bossBomb.radius || bossBomb.y > height + bossBomb.radius) {
+            bossBomb.active = false;
+            bossSpecialMode = false;
+            bossAttackMode = 'normal';
+            bossAttackTimer = 0;
+          }
+        }
+        // Se terminou o ataque especial, volta ao normal
+        if (bossBomb && !bossBomb.active && bossSpecialActive) {
+          bossSpecialMode = false;
+          bossAttackMode = 'normal';
+          bossAttackTimer = 0;
+          bossSpecialActive = false;
+        }
+        // NÃO retorna aqui, para permitir que o jogador atire durante o carregamento
+      }
+      if (bossAttackMode === 'normal') {
+        // Tiro reto (apenas 0°)
+        if (bossAttackTimer > 60) {
+          let angle = 0;
+          let speed = 7;
+          bossBullets.push({
+            x: boss.x - boss.radius,
+            y: boss.y,
+            radius: 24,
+            speed: speed,
+            dx: -speed * cos(angle),
+            dy: speed * sin(angle),
+            type: 'normal'
+          });
+          glock19Sound.play();
+          bossAttackTimer = 0;
+          // 1/3 de chance de ir para rajada
+          if (random() < 0.33) {
+            bossAttackMode = 'burst';
+            bossBurstCount = 0;
+            bossBurstShots = floor(random(5, 8));
+          }
+        }
+      } else if (bossAttackMode === 'burst') {
+        // Rajada rápida
+        boss.speed = 5; // Aumenta a velocidade do boss durante a rajada
+        if (bossAttackTimer > 10 && bossBurstCount < bossBurstShots) {
+          bossBullets.push({
+            x: boss.x - boss.radius,
+            y: boss.y,
+            radius: 18,
+            speed: 11,
+            dx: -11,
+            dy: 0,
+            type: 'burst'
+          });
+          glock19Sound.play();
+          bossAttackTimer = 0;
+          bossBurstCount++;
+        } else if (bossBurstCount >= bossBurstShots) {
+          bossAttackMode = 'normal';
+          bossAttackTimer = 0;
+          boss.speed = 2; // Volta à velocidade normal
+        }
+      }
+      // --- MOVIMENTO E COLISÃO DOS TIROS DO BOSS ---
       bossBullets = bossBullets.filter(bullet => {
-        bullet.x -= bullet.speed;
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
         image(bossBulletImg, bullet.x - bullet.radius, bullet.y - bullet.radius, bullet.radius * 2, bullet.radius * 2);
         const dist = Math.hypot(player.x - bullet.x, player.y - bullet.y);
         if (!player.invincible && dist < player.radius + bullet.radius) {
@@ -476,6 +664,7 @@ function draw() {
           }
           return false;
         }
+        // Remove se sair da tela
         return bullet.x + bullet.radius > 0;
       });
       miniBubbles = miniBubbles.filter(mb => {
@@ -532,17 +721,25 @@ function draw() {
 
 // Controles do teclado
 function keyPressed() {
-  if (keyCode === UP_ARROW) upPressed = true;
-  if (keyCode === DOWN_ARROW) downPressed = true;
-  if (keyCode === 32 && !gameOver) {
-    player.flap();
-    miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+  if (key === 'a' || key === 'A') leftPressed = true;
+  if (key === 'd' || key === 'D') rightPressed = true;
+  if ((key === 'w' || key === 'W' || keyCode === 32) && !gameOver) {
+    player.jump();
   }
+  if (key === 's' || key === 'S') downPressed = true;
   if (key === 'b' || key === 'B') {
     batmanMode = !batmanMode;
   }
 }
 function keyReleased() {
-  if (keyCode === UP_ARROW) upPressed = false;
-  if (keyCode === DOWN_ARROW) downPressed = false;
+  if (key === 'a' || key === 'A') leftPressed = false;
+  if (key === 'd' || key === 'D') rightPressed = false;
+  if (key === 's' || key === 'S') downPressed = false;
+}
+
+// Disparo com o mouse
+function mousePressed() {
+  if (gameStarted && !gameOver && mouseButton === LEFT) {
+    miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+  }
 }
