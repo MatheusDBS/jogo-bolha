@@ -1,6 +1,7 @@
 // Imagens e sons principais
 let bubbleImg, miniBubbleImg, baiacuImg, oasisImg, explosionSound, heartImg, batmanImg, platformImg;
 let moonImg, bossImg, popBaiacuSound, bossBulletImg, glock19Sound, batmanSound, successSound, hitpopSound, failSound;
+let explosionImg, batBolhaAtirandoImg;
 // Variáveis de estado do jogo
 let score = 0, lives = 3, spawnTimer = 0, oasisTimer = 0, nextPhase = false, finishLineX;
 const GRAVITY = 0.4;
@@ -10,7 +11,6 @@ let particles = [];
 let boss = null;
 let gameOver = false;
 let bossBullets = [];
-let explosionImg;
 let explosionFrames = 10;
 let explosionScale = 3;
 let explosionSpeed = 5;
@@ -78,10 +78,10 @@ const player = {
     translate(this.x, this.y);
     rotate(sin(millis() / 300) / 10);
     scale(1 + sin(millis() / 500) * 0.03, 1 + cos(millis() / 500) * 0.03);
-    if (batmanMode) {
-      image(batmanImg, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
+    if (atirando) {
+      image(batBolhaAtirandoImg, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
     } else {
-      image(bubbleImg, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
+      image(batmanImg, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
     }
     pop();
   },
@@ -131,6 +131,7 @@ function preload() {
   batmanImg = loadImage('./assets/imgs/Batman.png');
   platformImg = loadImage('./assets/imgs/Plataforma.png');
   bombaGif = loadImage('./assets/imgs/Bomba.gif');
+  batBolhaAtirandoImg = loadImage('./assets/imgs/BatBolhaAtirando.png');
 }
 
 // Controle de início do jogo e vídeo de lore
@@ -765,8 +766,13 @@ function keyReleased() {
 }
 
 // Disparo com o mouse
+let atirando = false;
+let atirandoTimeout;
 function mousePressed() {
   if (gameStarted && !gameOver && mouseButton === LEFT) {
     miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+    atirando = true;
+    clearTimeout(atirandoTimeout);
+    atirandoTimeout = setTimeout(() => { atirando = false; }, 120);
   }
 }
