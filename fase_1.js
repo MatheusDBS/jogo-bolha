@@ -409,74 +409,74 @@ function draw() {
     player.update();
     player.draw();
     // Fase 1: obstáculos e oásis
-    if (score < 10) {
-      miniBubbles = miniBubbles.filter(mb => {
-        mb.x += mb.speed;
-        image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
-        let hit = false;
-        obstacles = obstacles.filter(obs => {
-          const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
-          if (!hit && dist < mb.radius + obs.radius) {
-            score++;
-            hit = true;
-            popBaiacuSound.play();
-            return false;
-          }
-          return true;
-        });
-        return mb.x - mb.radius <= width && !hit;
-      });
-      if (++oasisTimer > 400) { 
-        spawnOasis(); 
-        oasisTimer = 0; 
-      }
-      oasisList = oasisList.filter(oasis => {
-        oasis.x -= 3;
-        drawOasis(oasis);
-        const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
-        if (dist < player.radius + oasis.radius * 0.7) {
-          if (lives < 3) lives++;
-          return false;
-        }
-        return oasis.x + oasis.radius > 0;
-      });
-      if (++spawnTimer > 80) { 
-        spawnObstacle(); 
-        spawnTimer = 0; 
-      }
-      obstacles = obstacles.filter(obs => {
-        obs.x -= 3;
-        const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
-        if (!player.invincible && dist < player.radius + obs.radius) {
-          lives--;
-          if (hitpopSound) hitpopSound.play();
-          player.invincible = true;
-          setTimeout(() => player.invincible = false, 800);
-          if (lives <= 0) {
-            explosionActive = true;
-            explosionX = player.x;
-            explosionY = player.y;
-            explosionFrame = 0;
-            explosionSound.play();
-            for (let i = 0; i < 20; i++) {
-              particles.push({
-                x: player.x,
-                y: player.y,
-                dx: random(-5, 5),
-                dy: random(-5, 5),
-                radius: random(2, 5),
-                alpha: 255
-              });
-            }
-            return false;
-          }
-          return false;
-        }
-        drawbaiacu(obs);
-        if (obs.x + obs.radius < 0) score++;
-        return obs.x + obs.radius > 0;
-      });
-    } else {
+    // if (score < 10) {
+      // miniBubbles = miniBubbles.filter(mb => {
+      //   mb.x += mb.speed;
+      //   image(miniBubbleImg, mb.x - mb.radius, mb.y - mb.radius, mb.radius * 2, mb.radius * 2);
+      //   let hit = false;
+      //   obstacles = obstacles.filter(obs => {
+      //     const dist = Math.hypot(mb.x - obs.x, mb.y - obs.y);
+      //     if (!hit && dist < mb.radius + obs.radius) {
+      //       score++;
+      //       hit = true;
+      //       popBaiacuSound.play();
+      //       return false;
+      //     }
+      //     return true;
+      //   });
+      //   return mb.x - mb.radius <= width && !hit;
+      // });
+      // if (++oasisTimer > 400) { 
+      //   spawnOasis(); 
+      //   oasisTimer = 0; 
+      // }
+      // oasisList = oasisList.filter(oasis => {
+      //   oasis.x -= 3;
+      //   drawOasis(oasis);
+      //   const dist = Math.hypot(player.x - oasis.x, player.y - oasis.y);
+      //   if (dist < player.radius + oasis.radius * 0.7) {
+      //     if (lives < 3) lives++;
+      //     return false;
+      //   }
+      //   return oasis.x + oasis.radius > 0;
+      // });
+      // if (++spawnTimer > 80) { 
+      //   spawnObstacle(); 
+      //   spawnTimer = 0; 
+      // }
+      // obstacles = obstacles.filter(obs => {
+      //   obs.x -= 3;
+      //   const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+      //   if (!player.invincible && dist < player.radius + obs.radius) {
+      //     lives--;
+      //     if (hitpopSound) hitpopSound.play();
+      //     player.invincible = true;
+      //     setTimeout(() => player.invincible = false, 800);
+      //     if (lives <= 0) {
+      //       explosionActive = true;
+      //       explosionX = player.x;
+      //       explosionY = player.y;
+      //       explosionFrame = 0;
+      //       explosionSound.play();
+      //       for (let i = 0; i < 20; i++) {
+      //         particles.push({
+      //           x: player.x,
+      //           y: player.y,
+      //           dx: random(-5, 5),
+      //           dy: random(-5, 5),
+      //           radius: random(2, 5),
+      //           alpha: 255
+      //         });
+      //       }
+      //       return false;
+      //     }
+      //     return false;
+      //   }
+      //   drawbaiacu(obs);
+      //   if (obs.x + obs.radius < 0) score++;
+      //   return obs.x + obs.radius > 0;
+      // });
+    // } else {
       // Fase do boss
       if (!boss) {
         boss = {
@@ -741,7 +741,7 @@ function draw() {
         }
         noLoop();
       }
-    }
+    // }
   } else {
     showGameOverScreen();
   }
