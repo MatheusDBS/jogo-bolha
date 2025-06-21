@@ -134,12 +134,12 @@ const bossConfig = {
 
 function preload() {
   [bubbleImg, miniBubbleImg, baiacuImg, oasisImg, heartImg, batmanImg, platformImg, moonImg, bossImg, bossBulletImg, explosionImg, batBolhaAtirandoImg, bombaGif] =
-    ['./assets/imgs/Bolha.png', './assets/imgs/Bolha.png', './assets/imgs/puffer-fish.gif', './assets/imgs/heart.png', './assets/imgs/heart.png',
-     './assets/imgs/Batman.png', './assets/imgs/Plataforma.png', './assets/imgs/lua.webp', './assets/imgs/camarao.png', './assets/imgs/9mm.png',
-     './assets/imgs/explosion.png', './assets/imgs/BatBolhaAtirando.png', './assets/imgs/Bomba.gif'].map(loadImage);
+    ['./assets/imgs/fase1/Bolha.png', './assets/imgs/fase1/Bolha.png', './assets/imgs/fase1/puffer-fish.gif', './assets/imgs/fase1/heart.png', './assets/imgs/fase1/heart.png',
+     './assets/imgs/fase1/Batman.png', './assets/imgs/fase1/Plataforma.png', './assets/imgs/fase1/lua.webp', './assets/imgs/fase1/camarao.png', './assets/imgs/fase1/9mm.png',
+     './assets/imgs/fase1/explosion.png', './assets/imgs/fase1/BatBolhaAtirando.png', './assets/imgs/fase1/Bomba.gif'].map(loadImage);
   [explosionSound, popBaiacuSound, glock19Sound, batmanSound, successSound, hitpopSound, failSound] =
-    ['./assets/audios/Explosao.mp3', './assets/audios/popbaiacu.mp3', './assets/audios/glock19.mp3', './assets/audios/batman.mp3',
-     './assets/audios/success.mp3', './assets/audios/hitpop.mp3', './assets/audios/fail.mp3'].map(loadSound);
+    ['./assets/audios/fase1/Explosao.mp3', './assets/audios/fase1/popbaiacu.mp3', './assets/audios/fase1/glock19.mp3', './assets/audios/fase1/batman.mp3',
+     './assets/audios/fase1/success.mp3', './assets/audios/fase1/hitpop.mp3', './assets/audios/fase1/fail.mp3'].map(loadSound);
 }
 
 function setup() {
