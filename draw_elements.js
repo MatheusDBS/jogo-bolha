@@ -20,12 +20,12 @@ function drawBackground() {
   });
 }
 
-function drawOasis({ x, y }) {
+function drawVida({ x, y }) {
   push(); translate(x, y);
   if (phaseAssets.oasis instanceof p5.Image) {
     image(phaseAssets.oasis, -16, -16, 32, 32);
   } else {
-    console.warn("Imagem do oasis inválida, usando fallback");
+    console.warn("Imagem da vida inválida, usando fallback");
     fill('green'); ellipse(0, 0, 32);
   }
   pop();
@@ -56,6 +56,6 @@ function drawExplosion() {
   if (explosionFrame >= 9 && particles.length === 0) { explosionActive = false; showGameOverScreen(); }
 }
 
-function spawnOasis() {
-  if (!gameOver) oasisList.push({ x: width + 80, y: random(60, height - 120), radius: 32 + random(12) });
+function spawnVida() {
+  if (!gameOver) vidaList.push({ x: width + 80, y: random(60, height - 120), radius: 32 + random(12) });
 }

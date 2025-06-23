@@ -1,5 +1,5 @@
-let score = 0, lives = 3, oasisTimer = 0, gameStarted = false, gameOver = false;
-let miniBubbles = [], oasisList = [], particles = [], bossBullets = [];
+let score = 0, bossHits = 0, lives = 3, vidaTimer = 0, gameStarted = false, gameOver = false;
+let miniBubbles = [], vidaList = [], particles = [], bossBullets = [];
 let leftPressed = false, rightPressed = false, downPressed = false, batmanMode = false, atirando = false;
 let currentPhase = 'fase_1';
 let phaseAssets = {};
@@ -24,7 +24,10 @@ function draw() {
   drawBackground(); drawExplosion();
   if (explosionActive) return;
   fill('white'); textSize(22); textAlign(LEFT);
-  text(score < 10 ? `Elimine os Baiacus: ${score}/10` : 'Derrote o Camarão Pistola', 20, 30);
+  // Lógica dinâmica de fases e pontuação
+  const totalFases = Object.keys(phases).length;
+  const faseAtual = Number(currentPhase.replace(/\D/g, ''));
+  text(`Elimine o Boss: ${faseAtual}/${totalFases} | Pontuação: ${bossHits}`, 20, 30);
   for (let i = 0; i < 3; i++) {
     let x = 30 + i * 35, y = 60;
     if (phaseAssets.heart instanceof p5.Image) {
@@ -62,31 +65,36 @@ function draw() {
         console.warn("Imagem da miniBubble inválida, usando fallback");
         fill('blue'); ellipse(mb.x, mb.y, mb.radius * 2);
       }
-      if (boss && Math.hypot(mb.x - boss.x, mb.y - boss.y) < boss.radius) { boss.hp--; return false; }
+      if (boss && Math.hypot(mb.x - boss.x, mb.y - boss.y) < boss.radius) {
+        boss.hp--;
+        bossHits++; // Incrementa a pontuação de acertos no boss
+        return false;
+      }
       return mb.x - mb.radius <= width;
     });
-    if (++oasisTimer > 400) { spawnOasis(); oasisTimer = 0; }
-    oasisList = oasisList.filter(o => {
-      o.x -= 3; drawOasis(o);
-      if (Math.hypot(player.x - o.x, player.y - o.y) < player.radius + o.radius * 0.7) {
+    if (++vidaTimer > 400) { spawnVida(); vidaTimer = 0; }
+    vidaList = vidaList.filter(v => {
+      v.x -= 3; drawVida(v);
+      if (Math.hypot(player.x - v.x, player.y - v.y) < player.radius + v.radius * 0.7) {
         if (lives < 3) lives++; return false;
       }
-      return o.x + o.radius > 0;
+      return v.x + v.radius > 0;
     });
     if (boss?.hp <= 0) {
       if (phaseAssets.batmanSound?.isPlaying()) phaseAssets.batmanSound.stop();
-      if (currentPhase === 'fase_2') {
+      if (currentPhase === `fase_${totalFases}`) {
         showGameOverScreen();
       } else {
         try { phaseAssets.success.play(); } catch (e) { console.warn("Erro ao reproduzir success sound:", e); }
         fill('rgba(0, 0, 0, 0.6)'); rect(0, 0, width, height); fill('#fff'); textAlign(CENTER);
         textSize(40); text(`Você venceu a ${currentPhase}!`, width / 2, height / 2 - 40);
-        textSize(20); text(`Pontuação final: ${score}`, width / 2, height / 2);
+        textSize(20); text(`Pontuação final: ${bossHits}`, width / 2, height / 2);
         text(`Vidas restantes: ${lives}`, width / 2, height / 2 + 30);
         if (!window.nextPhaseBtn) {
           window.nextPhaseBtn = createButtonStyled('Ir para Próxima Fase', (windowWidth - 200) / 2, windowHeight / 2 + 80, 200, 60, () => {
-            if (currentPhase === 'fase_1') {
-              trocarFase('fase_2');
+            if (currentPhase === `fase_${faseAtual}`) {
+              trocarFase(`fase_${faseAtual + 1}`);
+              bossHits = 0;
             }
           });
         } else window.nextPhaseBtn.position((windowWidth - 200) / 2, windowHeight / 2 + 80).show();

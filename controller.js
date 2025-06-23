@@ -105,7 +105,7 @@ function showAboutScreen() {
   text('Sobre o Jogo', width/2, y);
   y += 38;
   textSize(16);
-  text('BatBolha é um jogo de plataforma onde você controla o BatBolha\npara eliminar baiacus e derrotar o Camarão Pistola!', width/2, y);
+  text('BatBolha é um jogo de plataforma onde você controla o BatBolha\npara derrotar o Camarão Pistola e seus parceiros através das fases!', width/2, y);
   y += 48;
   textSize(18);
   text('Controles:', width/2, y);
@@ -146,7 +146,7 @@ function showGameOverScreen() {
   fill('rgba(0, 0, 0, 0.6)'); rect(0, 0, width, height);
   fill('#fff'); textSize(40); textAlign(CENTER);
   text("Game Over", width / 2, height / 2 - 40);
-  textSize(20); text(`Pontuação final: ${score}`, width / 2, height / 2);
+  textSize(20); text(`Pontuação final: ${typeof bossHits !== 'undefined' ? bossHits : score}`, width / 2, height / 2);
   text("Vidas restantes: 0", width / 2, height / 2 + 30);
 
   // Botão Reiniciar
@@ -155,7 +155,7 @@ function showGameOverScreen() {
       window.restartBtn.hide();
       showStartScreen();
       // Resetar variáveis principais
-      score = 0; lives = 3; oasisTimer = 0; gameOver = false;
+      score = 0; bossHits = 0; lives = 3; oasisTimer = 0; gameOver = false;
       miniBubbles = []; oasisList = []; particles = []; bossBullets = []; boss = null;
       player.x = 150; player.y = GROUND_Y - 25; player.dy = 0; player.invincible = false;
       gameStarted = false;
@@ -167,7 +167,7 @@ function showGameOverScreen() {
 }
 
 function resetGame() {
-  score = 0; lives = 3; oasisTimer = 0; gameOver = false;
+  score = 0; bossHits = 0; lives = 3; oasisTimer = 0; gameOver = false;
   miniBubbles = []; oasisList = []; particles = []; bossBullets = []; boss = null;
   player.x = 150; player.y = GROUND_Y - 25; player.dy = 0; player.invincible = false;
 }
