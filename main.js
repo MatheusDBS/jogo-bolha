@@ -7,15 +7,14 @@ let phaseAssets = {};
 
 function setup() {
   createCanvas(width, height);
-  try {
-    startLore();
-  } catch (e) {
-    console.warn("Erro ao chamar startLore, iniciando tela inicial diretamente:", e);
-    showStartScreen();
-  }
+  showStartScreen();
 }
 
 function draw() {
+  if (!gameStarted) {
+    showStartScreen();
+    return;
+  }
   if (!gameStarted) {
     background('#012030'); fill('white'); textAlign(CENTER);
     textSize(36); text('Bem-vindo ao BatBolha!', width / 2, height / 2 - 60);
@@ -95,4 +94,23 @@ function draw() {
       }
     }
   } else showGameOverScreen();
+}
+
+// Funções showStartScreen, showAboutScreen e showGameOverScreen foram movidas para controller.js
+
+// Redireciona eventos de teclado para o player.js
+function keyPressed() {
+  if (keyCode === 27 && !gameStarted) { // ESC volta para tela inicial
+    showStartScreen();
+    return;
+  }
+  if (gameStarted && typeof window.playerKeyPressed === 'function') {
+    window.playerKeyPressed();
+  }
+}
+
+function keyReleased() {
+  if (gameStarted && typeof window.playerKeyReleased === 'function') {
+    window.playerKeyReleased();
+  }
 }

@@ -58,6 +58,10 @@ function keyReleased() {
   if (key.toLowerCase() === 's') downPressed = false;
 }
 
+// Registra as funções globais para serem chamadas pelo main.js
+window.playerKeyPressed = keyPressed;
+window.playerKeyReleased = keyReleased;
+
 let atirandoTimeout;
 function mousePressed() {
   if (gameStarted && !gameOver && mouseButton === LEFT) {
