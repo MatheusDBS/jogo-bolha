@@ -51,8 +51,8 @@ const phases = {
         batman: './assets/imgs/fase_2/miranha.png',
         platform: './assets/imgs/fase_2/Plataforma.png',
         moon: './assets/imgs/fase_2/lua.webp',
-        boss: './assets/imgs/fase_2/boss.png',
-        bossBullet: './assets/imgs/fase_2/bullet.png',
+        boss: './assets/imgs/fase_2/camarao.png', // Corrigido para imagem existente
+        bossBullet: './assets/imgs/fase_2/9mm.png', // Corrigido para imagem existente
         explosion: './assets/imgs/fase_2/explosion.png',
         batBolhaAtirando: './assets/imgs/fase_2/BatBolhaAtirando.png',
         bomba: './assets/imgs/fase_2/Bomba.gif'
