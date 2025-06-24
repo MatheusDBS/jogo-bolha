@@ -20,7 +20,7 @@ function startLore() {
       const skipBtn = createButton('Pular Introdução');
       skipBtn.size(120, 36);
       skipBtn.style('font-size', '13px');
-      skipBtn.style('background', 'linear-gradient(90deg, #b71cff 0%, #00c3ff 100%)');
+      skipBtn.style('background', 'linear-gradient(90deg,rgb(0, 81, 255) 0%,rgb(32, 28, 255) 100%)');
       skipBtn.style('color', '#fff');
       skipBtn.style('border', 'none');
       skipBtn.style('border-radius', '18px');
@@ -94,7 +94,7 @@ function showAboutScreen() {
   // Cartão centralizado
   fill(30, 50, 70, 240);
   noStroke();
-  const cardW = 520, cardH = 260;
+  const cardW = 650, cardH = 270;
   const cardX = width/2 - cardW/2, cardY = height/2 - cardH/2;
   rect(cardX, cardY, cardW, cardH, 18);
 
@@ -124,7 +124,7 @@ function showAboutScreen() {
   // Criadores
   textSize(15);
   fill('#00c3ff');
-  text('Criadores: Alexandre, João, Matheus, Roberto', width/2, y + 45);
+  text('Criadores: \nAlexandre A. Tucci, João Victor Saboya de C., Matheus De Botoli Silva, Roberto Zhou', width/2, y + 45);
   fill('white');
 
   // Instrução para sair

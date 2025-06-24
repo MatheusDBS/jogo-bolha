@@ -1,7 +1,7 @@
 function createButtonStyled(text, x, y, w, h, onClick) {
   const btn = createButton(text).size(w, h).position(x, y)
     .style('font-size', `${h / 2.8}px`)
-    .style('background', 'linear-gradient(90deg, #00c3ff 0%,#b71cff 100%)')
+    .style('background', 'linear-gradient(90deg,rgb(0, 81, 255) 0%,rgb(32, 28, 255) 100%)')
     .style('color', '#fff')
     .style('border', 'none')
     .style('border-radius', `${h / 2.5}px`)

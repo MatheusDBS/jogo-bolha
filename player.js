@@ -85,5 +85,7 @@ function mousePressed() {
     else side = 1;
     miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: (side * 10) });
     atirando = true; clearTimeout(atirandoTimeout); atirandoTimeout = setTimeout(() => atirando = false, 120);
+    // Reproduz o som popBaiacu ao atirar
+    try { phaseAssets.popBaiacu.play(); } catch (e) { console.warn("Erro ao reproduzir popBaiacu sound:", e); }
   }
 }
