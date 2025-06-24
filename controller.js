@@ -167,7 +167,9 @@ function showGameOverScreen() {
 }
 
 function resetGame() {
-  score = 0; bossHits = 0; lives = 3; oasisTimer = 0; gameOver = false;
+  // score = 0; // Se quiser manter score acumulado, remova também
+  // bossHits = 0; // Não zera mais bossHits ao passar de fase
+  lives = 3; oasisTimer = 0; gameOver = false;
   miniBubbles = []; oasisList = []; particles = []; bossBullets = []; boss = null;
   player.x = 150; player.y = GROUND_Y - 25; player.dy = 0; player.invincible = false;
 }

@@ -100,10 +100,19 @@ function draw() {
         text(`Vidas restantes: ${lives}`, width / 2, height / 2 + 30);
         if (!window.nextPhaseBtn) {
           window.nextPhaseBtn = createButtonStyled('Ir para Próxima Fase', (windowWidth - 200) / 2, windowHeight / 2 + 80, 200, 60, () => {
-            trocarFase(proximaFase);
-            bossHits = 0;
+            // Garante que sempre vai para a próxima fase correta
+            const faseAtualNum = Number(currentPhase.replace(/\D/g, ''));
+            const proximaFase = `fase_${faseAtualNum + 1}`;
+            if (phases[proximaFase]) {
+              trocarFase(proximaFase);
+              // bossHits = 0; // Removido para manter a pontuação acumulada
+            } else {
+              console.warn('Próxima fase não encontrada:', proximaFase);
+            }
           });
-        } else window.nextPhaseBtn.position((windowWidth - 200) / 2, windowHeight / 2 + 80).show();
+        } else {
+          window.nextPhaseBtn.position((windowWidth - 200) / 2, windowHeight / 2 + 80).show();
+        }
         window.restartBtn?.hide();
         noLoop();
       }

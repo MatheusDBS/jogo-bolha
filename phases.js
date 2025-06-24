@@ -20,6 +20,7 @@ const phases = {
         explosion: './assets/imgs/fase_1/explosion.png',
         batBolhaAtirando: './assets/imgs/fase_1/BatBolhaAtirando.png',
         bomba: './assets/imgs/fase_1/Bomba.gif'
+        // gifbolhas: './assets/imgs/fase_1/gifbolhas.gif'
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
@@ -37,9 +38,10 @@ const phases = {
   },
   fase_2: {
     platforms: [
-      { x: 150, y: 300, w: 200, h: 24 },
-      { x: 400, y: 200, w: 150, h: 24 },
-      { x: 600, y: 250, w: 180, h: 24 }
+      { x: 100, y: 320, w: 180, h: 24 },
+      { x: 350, y: 250, w: 180, h: 24 },
+      { x: 600, y: 180, w: 180, h: 24 },
+      { x: 200, y: 150, w: 180, h: 24 }
     ],
     assets: {
       images: {
@@ -51,11 +53,12 @@ const phases = {
         batman: './assets/imgs/fase_2/Batman.png',
         platform: './assets/imgs/fase_2/Plataforma.png',
         moon: './assets/imgs/fase_2/lua.png',
-        boss: './assets/imgs/fase_2/camarao.png', // Corrigido para imagem existente
-        bossBullet: './assets/imgs/fase_2/9mm.png', // Corrigido para imagem existente
+        boss: './assets/imgs/fase_2/camarao.png',
+        bossBullet: './assets/imgs/fase_2/9mm.png',
         explosion: './assets/imgs/fase_2/explosion.png',
         batBolhaAtirando: './assets/imgs/fase_2/BatBolhaAtirando.png',
         bomba: './assets/imgs/fase_2/Bomba.gif'
+        // gifbolhas: './assets/imgs/fase_2/gifbolhas.gif'
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
@@ -79,19 +82,20 @@ const phases = {
     ],
     assets: {
       images: {
-        bubble: './assets/imgs/fase_3/Bolha.png', // Use assets da fase 2 ou crie pasta fase_3
+        bubble: './assets/imgs/fase_3/Bolha.png',
         miniBubble: './assets/imgs/fase_3/Bolha.png',
         baiacu: './assets/imgs/fase_3/baiacu.webp',
         oasis: './assets/imgs/fase_3/heart.png',
         heart: './assets/imgs/fase_3/heart.png',
         batman: './assets/imgs/fase_3/Batman.png',
         platform: './assets/imgs/fase_3/Plataforma.png',
-        moon: './assets/imgs/fase_3/lua.png',
+        moon: './assets/imgs/fase_3/lua.webp',
         boss: './assets/imgs/fase_3/camarao.png',
         bossBullet: './assets/imgs/fase_3/9mm.png',
         explosion: './assets/imgs/fase_3/explosion.png',
         batBolhaAtirando: './assets/imgs/fase_3/BatBolhaAtirando.png',
         bomba: './assets/imgs/fase_3/Bomba.gif'
+        // gifbolhas: './assets/imgs/fase_3/gifbolhas.gif'
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
@@ -141,6 +145,27 @@ function loadPhase(phase) {
       hitpop: loadSound(phases[phase].assets.sounds.hitpop, () => {}, (err) => console.error(`Erro ao carregar hitpop: ${err}`)),
       fail: loadSound(phases[phase].assets.sounds.fail, () => {}, (err) => console.error(`Erro ao carregar fail: ${err}`))
     };
+    // Controle para garantir que o som toque sempre ao iniciar uma fase
+    if (phaseAssets.batmanSound) {
+      // Se já foi liberado pelo usuário, toca imediatamente
+      const tryPlay = () => {
+        try {
+          phaseAssets.batmanSound.play();
+        } catch (e) {
+          // Se não conseguir, aguarda interação do usuário
+          const playOnUser = () => {
+            try {
+              phaseAssets.batmanSound.play();
+            } catch (e) {
+              console.warn('Não foi possível reproduzir o áudio batmanSound automaticamente:', e);
+            }
+            window.removeEventListener('pointerdown', playOnUser);
+          };
+          window.addEventListener('pointerdown', playOnUser);
+        }
+      };
+      tryPlay();
+    }
   } catch (e) {
     console.error(`Erro ao carregar assets da fase ${phase}:`, e);
   }
@@ -151,6 +176,24 @@ function trocarFase(phase) {
     currentPhase = phase;
     resetGame();
     loadPhase(phase);
+    // Reinicia a música do Batman ao reiniciar a fase
+    if (phaseAssets && phaseAssets.batmanSound) {
+      try {
+        phaseAssets.batmanSound.stop();
+        phaseAssets.batmanSound.play();
+      } catch (e) {
+        // Se não conseguir, aguarda interação do usuário
+        const playOnUser = () => {
+          try {
+            phaseAssets.batmanSound.play();
+          } catch (e) {
+            console.warn('Não foi possível reproduzir o áudio batmanSound automaticamente:', e);
+          }
+          window.removeEventListener('pointerdown', playOnUser);
+        };
+        window.addEventListener('pointerdown', playOnUser);
+      }
+    }
     gameStarted = true;
     window.nextPhaseBtn?.hide();
     window.restartBtn?.hide();
