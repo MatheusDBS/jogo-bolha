@@ -2,6 +2,7 @@ body {
   margin: 0;
   /* background-color: #c28223;  */
   /* background-image: url("./assets/imgs/gifbolhas.gif"); */
+  background-image: url("assets/imgs/walpaperbatbolha.png");
   background-repeat: no-repeat;
   background-size: cover;
   display: flex;

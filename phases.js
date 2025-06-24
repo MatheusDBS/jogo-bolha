@@ -24,7 +24,7 @@ const phases = {
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
-        popBaiacu: './assets/audios/fase_1/popbaiacu.mp3',
+        pop: './assets/audios/fase_1/popbaiacu.mp3',
         glock19: './assets/audios/fase_1/glock19.mp3',
         batmanSound: './assets/audios/fase_1/batman.mp3',
         success: './assets/audios/fase_1/success.mp3',
@@ -62,7 +62,7 @@ const phases = {
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
-        popBaiacu: './assets/audios/fase_1/popbaiacu.mp3',
+        pop: './assets/audios/fase_1/popbaiacu.mp3',
         glock19: './assets/audios/fase_1/glock19.mp3',
         batmanSound: './assets/audios/fase_1/batman.mp3',
         success: './assets/audios/fase_1/success.mp3',
@@ -99,7 +99,7 @@ const phases = {
       },
       sounds: {
         explosion: './assets/audios/fase_1/Explosao.mp3',
-        popBaiacu: './assets/audios/fase_1/popbaiacu.mp3',
+        pop: './assets/audios/fase_1/popbaiacu.mp3',
         glock19: './assets/audios/fase_1/glock19.mp3',
         batmanSound: './assets/audios/fase_1/batman.mp3',
         success: './assets/audios/fase_1/success.mp3',
@@ -138,7 +138,7 @@ function loadPhase(phase) {
       batBolhaAtirando: loadImage(phases[phase].assets.images.batBolhaAtirando, () => {}, (err) => console.error(`Erro ao carregar batBolhaAtirando: ${err}`)),
       bomba: loadImage(phases[phase].assets.images.bomba, () => {}, (err) => console.error(`Erro ao carregar bomba: ${err}`)),
       explosionSound: loadSound(phases[phase].assets.sounds.explosion, () => {}, (err) => console.error(`Erro ao carregar explosionSound: ${err}`)),
-      popBaiacu: loadSound(phases[phase].assets.sounds.popBaiacu, () => {}, (err) => console.error(`Erro ao carregar popBaiacu: ${err}`)),
+      pop: loadSound(phases[phase].assets.sounds.pop, () => {}, (err) => console.error(`Erro ao carregar pop: ${err}`)),
       glock19: loadSound(phases[phase].assets.sounds.glock19, () => {}, (err) => console.error(`Erro ao carregar glock19: ${err}`)),
       batmanSound: loadSound(phases[phase].assets.sounds.batmanSound, () => {}, (err) => console.error(`Erro ao carregar batmanSound: ${err}`)),
       success: loadSound(phases[phase].assets.sounds.success, () => {}, (err) => console.error(`Erro ao carregar success: ${err}`)),
