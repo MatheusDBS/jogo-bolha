@@ -81,8 +81,17 @@ const bossConfig = {
       console.warn("Imagem do boss inválida, usando fallback");
       fill('purple'); ellipse(boss.x, boss.y, boss.radius * 2);
     }
-    fill('red'); rect(boss.x - 50, boss.y - boss.radius - 20, 100, 10);
-    fill('lime'); rect(boss.x - 50, boss.y - boss.radius - 20, 100 * (boss.hp / phases[currentPhase].assets.boss.hp), 10);
+    // --- Barra de vida na parte de baixo do canvas ---
+    const barWidth = 300, barHeight = 18;
+    const barX = (width - barWidth) / 2;
+    const barY = height - barHeight - 16;
+    fill('rgba(0,0,0,0.5)'); rect(barX - 2, barY - 2, barWidth + 4, barHeight + 4, 8);
+    fill('red'); rect(barX, barY, barWidth, barHeight, 6);
+    fill('lime'); rect(barX, barY, barWidth * (boss.hp / phases[currentPhase].assets.boss.hp), barHeight, 6);
+    stroke(255); noFill(); rect(barX, barY, barWidth, barHeight, 6);
+    noStroke();
+    textAlign(CENTER, CENTER); fill('white'); textSize(16);
+    text('Boss', barX + barWidth / 2, barY + barHeight / 2);
     if (boss.attackMode === 'special') {
       push(); noFill(); stroke(255, 0, 0); strokeWeight(4);
       ellipse(boss.x, boss.y, boss.radius * 2 + 20 + sin(frameCount * 0.2) * 10);
