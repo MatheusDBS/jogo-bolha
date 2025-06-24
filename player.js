@@ -3,8 +3,12 @@ const GRAVITY = 0.4, GROUND_Y = height - 80, PLAYER_SPEED = 5, JUMP_STRENGTH = -
 
 const player = {
   x: 150, y: GROUND_Y - 25, radius: 25, dy: 0, dx: 0, onGround: true, invincible: false,
+  facingLeft: false, // novo campo para direção
   update(platforms) {
     this.dx = leftPressed ? -PLAYER_SPEED : rightPressed ? PLAYER_SPEED : 0;
+    // Atualiza direção
+    if (leftPressed) this.facingLeft = true;
+    if (rightPressed) this.facingLeft = false;
     this.x += this.dx;
     this.dy += GRAVITY;
     this.y += this.dy;
@@ -29,14 +33,25 @@ const player = {
   draw() {
     push();
     translate(this.x, this.y);
+    // Flip horizontal se estiver virado para a esquerda
+    if (this.facingLeft) {
+      scale(-1, 1);
+      // Corrige o ponto de origem para o centro ao inverter
+      imageMode(CENTER);
+    } else {
+      imageMode(CORNER);
+    }
     rotate(sin(millis() / 300) / 10);
     scale(1 + sin(millis() / 500) * 0.03, 1 + cos(millis() / 500) * 0.03);
     const img = atirando ? phaseAssets.batBolhaAtirando : phaseAssets.batman;
     if (img instanceof p5.Image) {
-      image(img, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
+      if (this.facingLeft) {
+        image(img, 0, 0, this.radius * 2.6, this.radius * 2.6);
+      } else {
+        image(img, -this.radius * 1.3, -this.radius * 1.3, this.radius * 2.6, this.radius * 2.6);
+      }
     } else {
-      console.warn("Imagem do jogador inválida, usando fallback");
-      fill('red'); ellipse(0, 0, this.radius * 2); // Fallback visual
+      fill('red'); ellipse(0, 0, this.radius * 2);
     }
     pop();
   },
@@ -63,9 +78,12 @@ window.playerKeyPressed = keyPressed;
 window.playerKeyReleased = keyReleased;
 
 let atirandoTimeout;
+let side;
 function mousePressed() {
   if (gameStarted && !gameOver && mouseButton === LEFT) {
-    miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: 10 });
+    if (player.facingLeft) side = -1 
+    else side = 1;
+    miniBubbles.push({ x: player.x + player.radius, y: player.y, radius: 10, speed: (side * 10) });
     atirando = true; clearTimeout(atirandoTimeout); atirandoTimeout = setTimeout(() => atirando = false, 120);
   }
 }
