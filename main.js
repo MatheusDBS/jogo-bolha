@@ -82,8 +82,16 @@ function draw() {
     });
     if (boss?.hp <= 0) {
       if (phaseAssets.batmanSound?.isPlaying()) phaseAssets.batmanSound.stop();
-      if (currentPhase === `fase_${totalFases}`) {
-        showGameOverScreen();
+      const proximaFase = `fase_${faseAtual + 1}`;
+      if (!phases[proximaFase]) {
+        // Última fase vencida
+        fill('rgba(0, 0, 0, 0.6)'); rect(0, 0, width, height); fill('#fff'); textAlign(CENTER);
+        textSize(40); text('Parabéns! Você zerou o jogo!', width / 2, height / 2 - 40);
+        textSize(20); text(`Pontuação final: ${bossHits}`, width / 2, height / 2);
+        text(`Vidas restantes: ${lives}`, width / 2, height / 2 + 30);
+        window.nextPhaseBtn?.hide();
+        window.restartBtn?.show();
+        noLoop();
       } else {
         try { phaseAssets.success.play(); } catch (e) { console.warn("Erro ao reproduzir success sound:", e); }
         fill('rgba(0, 0, 0, 0.6)'); rect(0, 0, width, height); fill('#fff'); textAlign(CENTER);
@@ -92,13 +100,12 @@ function draw() {
         text(`Vidas restantes: ${lives}`, width / 2, height / 2 + 30);
         if (!window.nextPhaseBtn) {
           window.nextPhaseBtn = createButtonStyled('Ir para Próxima Fase', (windowWidth - 200) / 2, windowHeight / 2 + 80, 200, 60, () => {
-            if (currentPhase === `fase_${faseAtual}`) {
-              trocarFase(`fase_${faseAtual + 1}`);
-              bossHits = 0;
-            }
+            trocarFase(proximaFase);
+            bossHits = 0;
           });
         } else window.nextPhaseBtn.position((windowWidth - 200) / 2, windowHeight / 2 + 80).show();
-        window.restartBtn?.hide(); noLoop();
+        window.restartBtn?.hide();
+        noLoop();
       }
     }
   } else showGameOverScreen();

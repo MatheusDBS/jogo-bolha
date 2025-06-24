@@ -31,7 +31,7 @@ const phases = {
         fail: './assets/audios/fase_1/fail.mp3'
       },
       boss: {
-        x: width - 200, y: height / 2, radius: 60, hp: 50, speed: 2
+        x: width - 200, y: height / 2, radius: 60, hp: 25, speed: 2 // Fácil
       }
     }
   },
@@ -48,9 +48,9 @@ const phases = {
         baiacu: './assets/imgs/fase_2/baiacu.webp',
         oasis: './assets/imgs/fase_2/heart.png',
         heart: './assets/imgs/fase_2/heart.png',
-        batman: './assets/imgs/fase_2/miranha.png',
+        batman: './assets/imgs/fase_2/Batman.png',
         platform: './assets/imgs/fase_2/Plataforma.png',
-        moon: './assets/imgs/fase_2/lua.webp',
+        moon: './assets/imgs/fase_2/lua.png',
         boss: './assets/imgs/fase_2/camarao.png', // Corrigido para imagem existente
         bossBullet: './assets/imgs/fase_2/9mm.png', // Corrigido para imagem existente
         explosion: './assets/imgs/fase_2/explosion.png',
@@ -58,16 +58,52 @@ const phases = {
         bomba: './assets/imgs/fase_2/Bomba.gif'
       },
       sounds: {
-        explosion: './assets/audios/fase_2/Explosao.mp3',
-        popBaiacu: './assets/audios/fase_2/popbaiacu.mp3',
-        glock19: './assets/audios/fase_2/glock19.mp3',
-        batmanSound: './assets/audios/fase_2/batman.mp3',
-        success: './assets/audios/fase_2/success.mp3',
-        hitpop: './assets/audios/fase_2/hitpop.mp3',
-        fail: './assets/audios/fase_2/fail.mp3'
+        explosion: './assets/audios/fase_1/Explosao.mp3',
+        popBaiacu: './assets/audios/fase_1/popbaiacu.mp3',
+        glock19: './assets/audios/fase_1/glock19.mp3',
+        batmanSound: './assets/audios/fase_1/batman.mp3',
+        success: './assets/audios/fase_1/success.mp3',
+        hitpop: './assets/audios/fase_1/hitpop.mp3',
+        fail: './assets/audios/fase_1/fail.mp3'
       },
       boss: {
-        x: width - 150, y: height / 2, radius: 70, hp: 60, speed: 3
+        x: width - 150, y: height / 2, radius: 70, hp: 70, speed: 3 // Médio
+      }
+    }
+  },
+  fase_3: {
+    platforms: [
+      { x: 180, y: 320, w: 180, h: 24 },
+      { x: 420, y: 180, w: 180, h: 24 },
+      { x: 650, y: 260, w: 160, h: 24 }
+    ],
+    assets: {
+      images: {
+        bubble: './assets/imgs/fase_3/Bolha.png', // Use assets da fase 2 ou crie pasta fase_3
+        miniBubble: './assets/imgs/fase_3/Bolha.png',
+        baiacu: './assets/imgs/fase_3/baiacu.webp',
+        oasis: './assets/imgs/fase_3/heart.png',
+        heart: './assets/imgs/fase_3/heart.png',
+        batman: './assets/imgs/fase_3/Batman.png',
+        platform: './assets/imgs/fase_3/Plataforma.png',
+        moon: './assets/imgs/fase_3/lua.png',
+        boss: './assets/imgs/fase_3/camarao.png',
+        bossBullet: './assets/imgs/fase_3/9mm.png',
+        explosion: './assets/imgs/fase_3/explosion.png',
+        batBolhaAtirando: './assets/imgs/fase_3/BatBolhaAtirando.png',
+        bomba: './assets/imgs/fase_3/Bomba.gif'
+      },
+      sounds: {
+        explosion: './assets/audios/fase_1/Explosao.mp3',
+        popBaiacu: './assets/audios/fase_1/popbaiacu.mp3',
+        glock19: './assets/audios/fase_1/glock19.mp3',
+        batmanSound: './assets/audios/fase_1/batman.mp3',
+        success: './assets/audios/fase_1/success.mp3',
+        hitpop: './assets/audios/fase_1/hitpop.mp3',
+        fail: './assets/audios/fase_1/fail.mp3'
+      },
+      boss: {
+        x: width - 120, y: height / 2, radius: 80, hp: 120, speed: 4 // Difícil
       }
     }
   }

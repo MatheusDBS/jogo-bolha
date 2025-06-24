@@ -1,4 +1,3 @@
-
 let boss = null;
 const bossConfig = {
   init(phase) {
@@ -39,15 +38,26 @@ const bossConfig = {
       }
       if (boss.bomb && !boss.bomb.active && boss.specialActive) this.resetAttack();
     } else if (boss.attackMode === 'normal') {
-      if (boss.attackTimer > 60) {
+      // Frequência de tiro depende da fase
+      let shootInterval = 60;
+      if (currentPhase === 'fase_1') shootInterval = 90; // Fácil: menos tiros
+      if (currentPhase === 'fase_2') shootInterval = 60; // Médio: padrão
+      if (currentPhase === 'fase_3') shootInterval = 35; // Difícil: mais tiros
+      if (boss.attackTimer > shootInterval) {
         bossBullets.push({ x: boss.x - boss.radius, y: boss.y, radius: 24, speed: 7, dx: -7, dy: 0, type: 'normal' });
         try { phaseAssets.glock19.play(); } catch (e) { console.warn("Erro ao reproduzir glock19 sound:", e); }
         boss.attackTimer = 0;
-        if (random() < 0.33) {
+        // Burst (rajada) depende da fase
+        if (currentPhase === 'fase_2' && random() < 0.5) {
           boss.attackMode = 'burst';
           boss.burstCount = 0;
-          boss.burstShots = floor(random(5, 8));
+          boss.burstShots = floor(random(5, 8)); // Médio: rajada moderada
+        } else if (currentPhase === 'fase_3' && random() < 0.7) {
+          boss.attackMode = 'burst';
+          boss.burstCount = 0;
+          boss.burstShots = floor(random(10, 16)); // Difícil: rajada longa
         }
+        // Fase 1 não faz burst
       }
     } else if (boss.attackMode === 'burst') {
       boss.speed = 5;
